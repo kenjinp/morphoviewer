@@ -1,0 +1,58 @@
+<html>
+<head>
+  <title>Test</title>
+</head>
+<body>
+  <!-- importing the automatically build module -->
+  <script src="../dist/morphoviewer.js"></script>
+
+  <div id="threedeediv"></div>
+
+  Open JSON morphology file file <input type="file" id="fileInput">
+
+  <script>
+    var fileInput = document.getElementById('fileInput');
+
+    // manages file input
+    fileInput.addEventListener('change', function(e) {
+      var files = e.target.files;
+      var reader = new FileReader();
+      if( !files.length ){
+        return;
+      }
+      reader.onloadend = function(event) {
+        var buffer = event.target.result;
+        readMorphoFile(buffer);
+      }
+      reader.readAsText( files[0] );
+  	});
+
+
+    //  deals with the JSON content of the file
+    // @param {String} buff - buff is a json string
+    function readMorphoFile( buff ){
+      let rawMorphoObj = JSON.parse( buff )
+
+
+    }
+
+
+
+
+    let threedeediv = document.getElementById( 'threedeediv' )
+    threeContext = new morphoviewer.ThreeContext(threedeediv)
+
+/*
+
+    // the foo object is part of our es6module module
+    var foo = new es6module.Foo(20, 30);
+
+    // do something with foo
+    foo.printAnAttribute();
+    foo.setAnAttribute(34)
+    foo.printAnAttribute();
+    */
+  </script>
+
+</body>
+</html>
