@@ -25,16 +25,28 @@ class MorphoViewer {
    * @param {String} name - The name to give to this morphology. Will be used as an identifier for several operations
    * @param {Boolean} asPolyline - if true: shows a polyline view. false: shows a tubular view (default: true)
    */
-  addMorphology (morphoObj, name, asPolyline=true) {
+  addMorphology (morphoObj, name=null, focusOn=true, asPolyline=true) {
     if (asPolyline) {
       let morpho = new MorphologyPolyline( morphoObj )
       console.log(morpho)
       //morpho.rotateY( Math.PI )
 
-      this._threeContext.addMorphologyPolyline(morpho, name)
+      this._threeContext.addMorphologyPolyline(morpho, name, focusOn)
     }
     // TODO: the tubular version
   }
+
+
+  /**
+   * Adds a mesh from its URL. The mesh has to encoded into the STL format
+   * @param {String} url - the url of the STL file
+   * @param {String} name - optional name of this mesh (useful for further operations such as centering the view)
+   */
+  addStlToMeshCollection (url, name, focusOn=true) {
+    this._threeContext.addStlToMeshCollection(url, name, focusOn)
+  }
+
+
 }
 
 export { MorphoViewer }

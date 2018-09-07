@@ -42,6 +42,7 @@ class MorphologyPolyline extends THREE.Object3D {
 
     // this is because the Allen ref is not oriented the same way as WebGL
     this.rotateX( Math.PI )
+    this.rotateY( Math.PI )
 
     // compute the bounding box, useful for further camera targeting
     this.box = new THREE.Box3().setFromObject(this)

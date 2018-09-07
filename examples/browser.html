@@ -18,7 +18,8 @@
 
   <div id="threedeediv"></div>
 
-  Open JSON morphology file file <input type="file" id="fileInput">
+
+  Open JSON morphology file file <input type="file" id="fileInput" multiple>
 
   <script>
     var fileInput = document.getElementById('fileInput');
@@ -27,18 +28,29 @@
     let threedeediv = document.getElementById( 'threedeediv' )
     let morphoViewer = new morphoviewer.MorphoViewer(threedeediv)
 
+    // optional: we load a brain model. Last param is for focusing on it
+    morphoViewer.addStlToMeshCollection('../data/meshes/mask_smooth_simple.stl', "brain", true)
+
     // manages file input
     fileInput.addEventListener('change', function(e) {
       var files = e.target.files;
-      var reader = new FileReader();
+
       if( !files.length ){
         return;
       }
-      reader.onloadend = function(event) {
-        var buffer = event.target.result;
-        readMorphoFile(buffer);
+
+
+      for(let i=0; i<files.length; i++){
+        let reader = new FileReader()
+
+        reader.onloadend = function(event) {
+          var buffer = event.target.result
+          readMorphoFile(buffer)
+        }
+
+        reader.readAsText( files[i] )
       }
-      reader.readAsText( files[0] );
+
   	});
 
 
@@ -46,7 +58,10 @@
     // @param {String} buff - buff is a json string
     function readMorphoFile( buff ){
       let rawMorphoObj = JSON.parse( buff )
-      morphoViewer.addMorphology (rawMorphoObj, "testMorphoPolyline")
+
+      // we display a morpho, second param is it's name (null: a autogenarated will do)
+      // last param is "do we focus the camera on it"
+      morphoViewer.addMorphology (rawMorphoObj, null, false)
     }
 
 

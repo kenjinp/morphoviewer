@@ -23,6 +23,7 @@ class ThreeContext {
     }
 
     this._morphologyPolylineCollection = {}
+    this._meshCollection = {}
 
     // init camera
     this._camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 100000 )
@@ -32,8 +33,8 @@ class ThreeContext {
     this._scene = new THREE.Scene()
     this._scene.add(new THREE.AmbientLight( 0x444444 ) )
 
-    var axesHelper = new THREE.AxesHelper( 1000 )
-    this._scene.add( axesHelper )
+    //var axesHelper = new THREE.AxesHelper( 1000 )
+    //this._scene.add( axesHelper )
 
     // adding some light
     var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 )
@@ -63,7 +64,7 @@ class ThreeContext {
     }, false )
 
 
-    this.addStuff()
+    //this.addStuff()
     this._animate()
   }
 
@@ -79,12 +80,19 @@ class ThreeContext {
     //sphere.position.z = - span/2 + Math.random()*span
     this._scene.add( sphere )
     */
-
-    var loader = new STLLoader();
-    loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
-      //that._scene.add( new THREE.Mesh( geometry ) );
+  }
 
 
+  /**
+   * Adds a mesh from its URL. The mesh has to encoded into the STL format
+   * @param {String} url - the url of the STL file
+   * @param {String} name - optional name of this mesh (useful for further operations such as centering the view)
+   */
+  addStlToMeshCollection (url, name=null, focusOn=true) {
+    let that = this
+    var loader = new STLLoader()
+    //loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
+    loader.load( url, function ( geometry ) {
       var material = new THREE.MeshPhongMaterial( {
           specular: 0xffffff,
           shininess: 300,
@@ -93,18 +101,25 @@ class ThreeContext {
           transparent: true,
           opacity: 0.1,
           wireframe: false
-        } );
+        })
 
-      let brainMesh = new THREE.Mesh(
+      geometry.computeBoundingSphere()
+
+      let mesh = new THREE.Mesh(
         geometry,
         material
       )
 
-      //console.log( brainMesh)
+      // generate a random name in case none was provided
+      if (!name)
+        name = "mesh_" + Math.round(Math.random() * 1000000).toString()
 
-      that._scene.add( brainMesh )
-      //that._camera.lookAt(geometry.boundingSphere.center )
-    });
+      that._scene.add( mesh )
+      that._meshCollection[name] = mesh
+
+      if (focusOn)
+        that.focusOnMesh(name)
+    })
   }
 
   _animate () {
@@ -121,10 +136,16 @@ class ThreeContext {
    * @param {MorphoPolyline} morphoPolyline - a MorphoPolyline instance
    * @param {String} name - the identifier to give to the MorphoPolyline instance within a local collection
    */
-  addMorphologyPolyline (morphoPolyline, name) {
+  addMorphologyPolyline (morphoPolyline, name=null, focusOn=true) {
+    // generate a random name in case none was provided
+    if (!name)
+      name = "mesh_" + Math.round(Math.random() * 1000000).toString()
+
     this._morphologyPolylineCollection[ name ] = morphoPolyline
     this._scene.add( morphoPolyline )
-    this.focusOnMorphology( name )
+
+    if (focusOn)
+      this.focusOnMorphology( name )
   }
 
   /**
@@ -135,13 +156,24 @@ class ThreeContext {
     let morphoBox = this._morphologyPolylineCollection[ name ].box
     let boxSize = new THREE.Vector3()
     morphoBox.getSize(boxSize)
-    let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3.
+    let largestSide = Math.max(boxSize.x, boxSize.y, boxSize.z)
     let boxCenter = new THREE.Vector3()
     morphoBox.getCenter(boxCenter)
-    this._camera.position.set(boxCenter.x - averageSide*3, boxCenter.y, boxCenter.z)
+    this._camera.position.set(boxCenter.x - largestSide*3, boxCenter.y, boxCenter.z)
     this._camera.lookAt( boxCenter )
 
     this._controls.target.copy( boxCenter )
+  }
+
+
+  focusOnMesh (name) {
+    console.log('center');
+    let mesh = this._meshCollection[name]
+    let boundingSphere = mesh.geometry.boundingSphere
+
+    this._camera.position.set(boundingSphere.center.x - boundingSphere.radius*3, boundingSphere.center.y, boundingSphere.center.z)
+    this._camera.lookAt( boundingSphere.center )
+    this._controls.target.copy( boundingSphere.center )
   }
 
 }
