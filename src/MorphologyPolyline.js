@@ -1,8 +1,14 @@
 import * as THREE from "three"
+import { Tools } from './Tools.js'
+
 
 /**
  * The MorphologyPolyline is the simplest 3D representation of a morphology, using
- * simple polylines. It extends from THREE.Object so that it's easy to integrate.
+ * simple polylines.
+ * Compared to its cylinder-based alternative (MorphologyPolycylinder), this one
+ * is more suitable for displaying several morphologies (up to maybe a hundred,
+ * depending on length and machine performance)
+ * MorphologyPolyline extends from THREE.Object so that it's easy to integrate.
  * It's constructor
  */
 class MorphologyPolyline extends THREE.Object3D {
@@ -11,15 +17,20 @@ class MorphologyPolyline extends THREE.Object3D {
    * @constructor
    * Builds a moprho as a polyline
    * @param {Object} morpho - raw object that describes a morphology (usually straight from a JSON file)
+   * @param {object} options - the option object
+   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
    */
-  constructor (morpho) {
+  constructor (morpho, options) {
     super()
+
+    // fetch the optional color
+    let color = Tools.getOption(options, 'color', null)
 
     // simple color lookup, so that every section type is shown in a different color
     this._sectionColors = {
-      axon: 0x0000ff,
-      basal_dendrite: 0x990000,
-      apical_dendrite: 0x009900,
+      axon: color || 0x0000ff,
+      basal_dendrite: color || 0x990000,
+      apical_dendrite: color || 0x009900,
     }
 
     // creating a polyline for each section
@@ -57,11 +68,11 @@ class MorphologyPolyline extends THREE.Object3D {
    * @return {THREE.Line} the constructed polyline
    */
   _buildSection (sectionDescription) {
-    var material = new THREE.LineBasicMaterial({
+    let material = new THREE.LineBasicMaterial({
       color: this._sectionColors[sectionDescription.type]
     })
 
-    var geometry = new THREE.Geometry()
+    let geometry = new THREE.Geometry()
 
     for (let i=0; i<sectionDescription.points.length; i++)
     {
@@ -72,7 +83,7 @@ class MorphologyPolyline extends THREE.Object3D {
       ))
     }
 
-    var line = new THREE.Line( geometry, material )
+    let line = new THREE.Line( geometry, material )
 
     // adding some metadata as it can be useful for raycasting
     line.name = sectionDescription.id

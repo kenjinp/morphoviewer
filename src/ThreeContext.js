@@ -1,9 +1,7 @@
 import * as THREE from "three"
-import { TrackballControls } from './TrackballControls.js'
-import { STLLoader } from './STLLoader.js'
-//import { TrackballControls } from  'three-trackballcontrols'
-
-
+import { TrackballControls } from './thirdparty/TrackballControls.js'
+import { STLLoader } from './thirdparty/STLLoader.js'
+import { Tools } from './Tools.js'
 
 
 /**
@@ -12,11 +10,11 @@ import { STLLoader } from './STLLoader.js'
  */
 class ThreeContext {
 
-
+  /**
+   * @param {DONObject} divObj - the div object as a DOM element. Will be used to host the WebGL context
+   * created by THREE
+   */
   constructor ( divObj=null ) {
-
-
-
     if (!divObj) {
       console.error("The ThreeContext needs a div object")
       return
@@ -33,8 +31,8 @@ class ThreeContext {
     this._scene = new THREE.Scene()
     this._scene.add(new THREE.AmbientLight( 0x444444 ) )
 
-    //var axesHelper = new THREE.AxesHelper( 1000 )
-    //this._scene.add( axesHelper )
+    var axesHelper = new THREE.AxesHelper( 1000 )
+    this._scene.add( axesHelper )
 
     // adding some light
     var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 )
@@ -63,33 +61,77 @@ class ThreeContext {
       that._controls.handleResize()
     }, false )
 
-
-    //this.addStuff()
+    //this._addStuff()
     this._animate()
   }
 
 
-  addStuff () {
+  /**
+   * @private
+   * Add stuff to the scene, only for testing
+   */
+  _addStuff () {
     let that = this
+
+    window.THREE = THREE
+
     /*
-    let geometry = new THREE.SphereGeometry( 10, 32, 32 )
-    let material = new THREE.MeshPhongMaterial( {color: 0xffff00} )
-    let sphere = new THREE.Mesh( geometry, material )
-    //sphere.position.x = - span/2 + Math.random()*span
-    //sphere.position.y = - span/2 + Math.random()*span
-    //sphere.position.z = - span/2 + Math.random()*span
-    this._scene.add( sphere )
+    var geometry = new THREE.CylinderGeometry( 5, 5, 20, 32 )
+    //var geometry = new THREE.CylinderBufferGeometry( 5, 5, 20, 32 )
+
+    var material = new THREE.MeshPhongMaterial( {color: 0xff00ff} )
+    var cylinder = new THREE.Mesh( geometry, material )
+    this._scene.add( cylinder )
+    console.log(cylinder)
     */
+
+
+    function drawCylinder(vStart, vEnd, rStart, rEnd, openEnd){
+      var HALF_PI = Math.PI * .5;
+      var distance = vStart.distanceTo(vEnd);
+      var position  = vEnd.clone().add(vStart).divideScalar(2);
+
+      var material = new THREE.MeshLambertMaterial({color:0x0000ff});
+      var cylinder = new THREE.CylinderGeometry(rStart, rEnd , distance, 32, 1, openEnd);
+
+      var orientation = new THREE.Matrix4();//a new orientation matrix to offset pivot
+      var offsetRotation = new THREE.Matrix4();//a matrix to fix pivot rotation
+      var offsetPosition = new THREE.Matrix4();//a matrix to fix pivot position
+      orientation.lookAt(vStart,vEnd,new THREE.Vector3(0,1,0));//look at destination
+      offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
+      orientation.multiply(offsetRotation);//combine orientation with rotation transformations
+      cylinder.applyMatrix(orientation)
+
+      var mesh = new THREE.Mesh(cylinder,material);
+      mesh.position.x = position.x
+      mesh.position.y = position.y
+      mesh.position.z = position.z
+      return mesh
+    }
+
+    let c = drawCylinder( new THREE.Vector3(1000, 0, 0), new THREE.Vector3(0, 0, 1000), 10, 100, false)
+    this._scene.add( c )
+    console.log( c );
+
+
   }
 
 
   /**
    * Adds a mesh from its URL. The mesh has to encoded into the STL format
    * @param {String} url - the url of the STL file
-   * @param {String} name - optional name of this mesh (useful for further operations such as centering the view)
+   * @param {Object} options - the options object
+   * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
+   * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
    */
-  addStlToMeshCollection (url, name=null, focusOn=true) {
+  addStlToMeshCollection (url, options) {
     let that = this
+
+    // generate a random name in case none was provided
+    let name = Tools.getOption( options, "name", "mesh_" + Math.round(Math.random() * 1000000).toString() )
+    let focusOn = Tools.getOption( options, "focusOn", true )
+
     var loader = new STLLoader()
     //loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
     loader.load( url, function ( geometry ) {
@@ -110,18 +152,25 @@ class ThreeContext {
         material
       )
 
-      // generate a random name in case none was provided
-      if (!name)
-        name = "mesh_" + Math.round(Math.random() * 1000000).toString()
-
       that._scene.add( mesh )
       that._meshCollection[name] = mesh
 
       if (focusOn)
         that.focusOnMesh(name)
+
+      // call a callback if declared, with the name of the mesh in arg
+      let onDone = Tools.getOption( options, "onDone", null )
+      if (onDone) {
+        onDone( name )
+      }
     })
   }
 
+
+  /**
+   * @private
+   * deals with rendering and updating the controls
+   */
   _animate () {
     requestAnimationFrame( this._animate.bind(this) )
     this._controls.update()
@@ -134,19 +183,29 @@ class ThreeContext {
    * Add a MorphoPolyline object (which are ThreeJS Object3D) into the scene of this
    * ThreeContext.
    * @param {MorphoPolyline} morphoPolyline - a MorphoPolyline instance
-   * @param {String} name - the identifier to give to the MorphoPolyline instance within a local collection
+   * @param {Object} options - the option object
+   * @param {String} options.name - the identifier to give to the MorphoPolyline instance within a local collection
+   * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
+   * @param {Function} options.onDone - callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
    */
-  addMorphologyPolyline (morphoPolyline, name=null, focusOn=true) {
+  addMorphologyPolyline (morphoPolyline, options) {
     // generate a random name in case none was provided
-    if (!name)
-      name = "mesh_" + Math.round(Math.random() * 1000000).toString()
+    let name = Tools.getOption( options, "name", "morpho_" + Math.round(Math.random() * 1000000).toString() )
+    let focusOn = Tools.getOption( options, "focusOn", true )
 
     this._morphologyPolylineCollection[ name ] = morphoPolyline
     this._scene.add( morphoPolyline )
 
     if (focusOn)
       this.focusOnMorphology( name )
+
+    // call a callback if declared, with the name of the morphology in arg
+    let onDone = Tools.getOption( options, "onDone", null )
+    if (onDone) {
+      onDone( name )
+    }
   }
+
 
   /**
    * Make the camera focus on a specific morphology
@@ -166,8 +225,11 @@ class ThreeContext {
   }
 
 
+  /**
+   * Focus on a mesh, given its name
+   * @param {string} name - name of the mesh to focus on
+   */
   focusOnMesh (name) {
-    console.log('center');
     let mesh = this._meshCollection[name]
     let boundingSphere = mesh.geometry.boundingSphere
 

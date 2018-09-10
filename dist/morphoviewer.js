@@ -186,15 +186,21 @@
 	} );
 
 	var REVISION = '96';
+	var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2 };
 	var CullFaceNone = 0;
 	var CullFaceBack = 1;
 	var CullFaceFront = 2;
+	var CullFaceFrontBack = 3;
+	var FrontFaceDirectionCW = 0;
+	var FrontFaceDirectionCCW = 1;
+	var BasicShadowMap = 0;
 	var PCFShadowMap = 1;
 	var PCFSoftShadowMap = 2;
 	var FrontSide = 0;
 	var BackSide = 1;
 	var DoubleSide = 2;
 	var FlatShading = 1;
+	var SmoothShading = 2;
 	var NoColors = 0;
 	var FaceColors = 1;
 	var VertexColors = 2;
@@ -270,6 +276,7 @@
 	var RGBAFormat = 1023;
 	var LuminanceFormat = 1024;
 	var LuminanceAlphaFormat = 1025;
+	var RGBEFormat = RGBAFormat;
 	var DepthFormat = 1026;
 	var DepthStencilFormat = 1027;
 	var RGB_S3TC_DXT1_Format = 33776;
@@ -311,6 +318,7 @@
 	var sRGBEncoding = 3001;
 	var GammaEncoding = 3007;
 	var RGBEEncoding = 3002;
+	var LogLuvEncoding = 3003;
 	var RGBM7Encoding = 3004;
 	var RGBM16Encoding = 3005;
 	var RGBDEncoding = 3006;
@@ -38915,6 +38923,112 @@
 	};
 
 	/**
+	 * @author thespite / http://clicktorelease.com/
+	 */
+
+
+	function ImageBitmapLoader( manager ) {
+
+		if ( typeof createImageBitmap === 'undefined' ) {
+
+			console.warn( 'THREE.ImageBitmapLoader: createImageBitmap() not supported.' );
+
+		}
+
+		if ( typeof fetch === 'undefined' ) {
+
+			console.warn( 'THREE.ImageBitmapLoader: fetch() not supported.' );
+
+		}
+
+		this.manager = manager !== undefined ? manager : DefaultLoadingManager;
+		this.options = undefined;
+
+	}
+
+	ImageBitmapLoader.prototype = {
+
+		constructor: ImageBitmapLoader,
+
+		setOptions: function setOptions( options ) {
+
+			this.options = options;
+
+			return this;
+
+		},
+
+		load: function ( url, onLoad, onProgress, onError ) {
+
+			if ( url === undefined ) url = '';
+
+			if ( this.path !== undefined ) url = this.path + url;
+
+			url = this.manager.resolveURL( url );
+
+			var scope = this;
+
+			var cached = Cache.get( url );
+
+			if ( cached !== undefined ) {
+
+				scope.manager.itemStart( url );
+
+				setTimeout( function () {
+
+					if ( onLoad ) onLoad( cached );
+
+					scope.manager.itemEnd( url );
+
+				}, 0 );
+
+				return cached;
+
+			}
+
+			fetch( url ).then( function ( res ) {
+
+				return res.blob();
+
+			} ).then( function ( blob ) {
+
+				return createImageBitmap( blob, scope.options );
+
+			} ).then( function ( imageBitmap ) {
+
+				Cache.add( url, imageBitmap );
+
+				if ( onLoad ) onLoad( imageBitmap );
+
+				scope.manager.itemEnd( url );
+
+			} ).catch( function ( e ) {
+
+				if ( onError ) onError( e );
+
+				scope.manager.itemEnd( url );
+				scope.manager.itemError( url );
+
+			} );
+
+		},
+
+		setCrossOrigin: function ( /* value */ ) {
+
+			return this;
+
+		},
+
+		setPath: function ( value ) {
+
+			this.path = value;
+			return this;
+
+		}
+
+	};
+
+	/**
 	 * @author zz85 / http://www.lab4games.net/zz85/blog
 	 * minimal class for proxing functions to Path. Replaces old "extractSubpaths()"
 	 **/
@@ -45332,6 +45446,165 @@
 	AxesHelper.prototype = Object.create( LineSegments.prototype );
 	AxesHelper.prototype.constructor = AxesHelper;
 
+	/**
+	 * @author mrdoob / http://mrdoob.com/
+	 */
+
+	function Face4( a, b, c, d, normal, color, materialIndex ) {
+
+		console.warn( 'THREE.Face4 has been removed. A THREE.Face3 will be created instead.' );
+		return new Face3( a, b, c, normal, color, materialIndex );
+
+	}
+
+	var LineStrip = 0;
+
+	var LinePieces = 1;
+
+	function MeshFaceMaterial( materials ) {
+
+		console.warn( 'THREE.MeshFaceMaterial has been removed. Use an Array instead.' );
+		return materials;
+
+	}
+
+	function MultiMaterial( materials ) {
+
+		if ( materials === undefined ) materials = [];
+
+		console.warn( 'THREE.MultiMaterial has been removed. Use an Array instead.' );
+		materials.isMultiMaterial = true;
+		materials.materials = materials;
+		materials.clone = function () {
+
+			return materials.slice();
+
+		};
+		return materials;
+
+	}
+
+	function PointCloud( geometry, material ) {
+
+		console.warn( 'THREE.PointCloud has been renamed to THREE.Points.' );
+		return new Points( geometry, material );
+
+	}
+
+	function Particle( material ) {
+
+		console.warn( 'THREE.Particle has been renamed to THREE.Sprite.' );
+		return new Sprite( material );
+
+	}
+
+	function ParticleSystem( geometry, material ) {
+
+		console.warn( 'THREE.ParticleSystem has been renamed to THREE.Points.' );
+		return new Points( geometry, material );
+
+	}
+
+	function PointCloudMaterial( parameters ) {
+
+		console.warn( 'THREE.PointCloudMaterial has been renamed to THREE.PointsMaterial.' );
+		return new PointsMaterial( parameters );
+
+	}
+
+	function ParticleBasicMaterial( parameters ) {
+
+		console.warn( 'THREE.ParticleBasicMaterial has been renamed to THREE.PointsMaterial.' );
+		return new PointsMaterial( parameters );
+
+	}
+
+	function ParticleSystemMaterial( parameters ) {
+
+		console.warn( 'THREE.ParticleSystemMaterial has been renamed to THREE.PointsMaterial.' );
+		return new PointsMaterial( parameters );
+
+	}
+
+	function Vertex( x, y, z ) {
+
+		console.warn( 'THREE.Vertex has been removed. Use THREE.Vector3 instead.' );
+		return new Vector3( x, y, z );
+
+	}
+
+	//
+
+	function DynamicBufferAttribute( array, itemSize ) {
+
+		console.warn( 'THREE.DynamicBufferAttribute has been removed. Use new THREE.BufferAttribute().setDynamic( true ) instead.' );
+		return new BufferAttribute( array, itemSize ).setDynamic( true );
+
+	}
+
+	function Int8Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Int8Attribute has been removed. Use new THREE.Int8BufferAttribute() instead.' );
+		return new Int8BufferAttribute( array, itemSize );
+
+	}
+
+	function Uint8Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Uint8Attribute has been removed. Use new THREE.Uint8BufferAttribute() instead.' );
+		return new Uint8BufferAttribute( array, itemSize );
+
+	}
+
+	function Uint8ClampedAttribute( array, itemSize ) {
+
+		console.warn( 'THREE.Uint8ClampedAttribute has been removed. Use new THREE.Uint8ClampedBufferAttribute() instead.' );
+		return new Uint8ClampedBufferAttribute( array, itemSize );
+
+	}
+
+	function Int16Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Int16Attribute has been removed. Use new THREE.Int16BufferAttribute() instead.' );
+		return new Int16BufferAttribute( array, itemSize );
+
+	}
+
+	function Uint16Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Uint16Attribute has been removed. Use new THREE.Uint16BufferAttribute() instead.' );
+		return new Uint16BufferAttribute( array, itemSize );
+
+	}
+
+	function Int32Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Int32Attribute has been removed. Use new THREE.Int32BufferAttribute() instead.' );
+		return new Int32BufferAttribute( array, itemSize );
+
+	}
+
+	function Uint32Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Uint32Attribute has been removed. Use new THREE.Uint32BufferAttribute() instead.' );
+		return new Uint32BufferAttribute( array, itemSize );
+
+	}
+
+	function Float32Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Float32Attribute has been removed. Use new THREE.Float32BufferAttribute() instead.' );
+		return new Float32BufferAttribute( array, itemSize );
+
+	}
+
+	function Float64Attribute( array, itemSize ) {
+
+		console.warn( 'THREE.Float64Attribute has been removed. Use new THREE.Float64BufferAttribute() instead.' );
+		return new Float64BufferAttribute( array, itemSize );
+
+	}
+
 	//
 
 	Curve.create = function ( construct, getPoint ) {
@@ -45406,6 +45679,33 @@
 
 	//
 
+	function ClosedSplineCurve3( points ) {
+
+		console.warn( 'THREE.ClosedSplineCurve3 has been deprecated. Use THREE.CatmullRomCurve3 instead.' );
+
+		CatmullRomCurve3.call( this, points );
+		this.type = 'catmullrom';
+		this.closed = true;
+
+	}
+
+	ClosedSplineCurve3.prototype = Object.create( CatmullRomCurve3.prototype );
+
+	//
+
+	function SplineCurve3( points ) {
+
+		console.warn( 'THREE.SplineCurve3 has been deprecated. Use THREE.CatmullRomCurve3 instead.' );
+
+		CatmullRomCurve3.call( this, points );
+		this.type = 'catmullrom';
+
+	}
+
+	SplineCurve3.prototype = Object.create( CatmullRomCurve3.prototype );
+
+	//
+
 	function Spline( points ) {
 
 		console.warn( 'THREE.Spline has been removed. Use THREE.CatmullRomCurve3 instead.' );
@@ -45437,6 +45737,29 @@
 
 	} );
 
+	//
+
+	function AxisHelper( size ) {
+
+		console.warn( 'THREE.AxisHelper has been renamed to THREE.AxesHelper.' );
+		return new AxesHelper( size );
+
+	}
+
+	function BoundingBoxHelper( object, color ) {
+
+		console.warn( 'THREE.BoundingBoxHelper has been deprecated. Creating a THREE.BoxHelper instead.' );
+		return new BoxHelper( object, color );
+
+	}
+
+	function EdgesHelper( object, hex ) {
+
+		console.warn( 'THREE.EdgesHelper has been removed. Use THREE.EdgesGeometry instead.' );
+		return new LineSegments( new EdgesGeometry( object.geometry ), new LineBasicMaterial( { color: hex !== undefined ? hex : 0xffffff } ) );
+
+	}
+
 	GridHelper.prototype.setColors = function () {
 
 		console.error( 'THREE.GridHelper: setColors() has been deprecated, pass them in the constructor instead.' );
@@ -45448,6 +45771,13 @@
 		console.error( 'THREE.SkeletonHelper: update() no longer needs to be called.' );
 
 	};
+
+	function WireframeHelper( object, hex ) {
+
+		console.warn( 'THREE.WireframeHelper has been removed. Use THREE.WireframeGeometry instead.' );
+		return new LineSegments( new WireframeGeometry( object.geometry ), new LineBasicMaterial( { color: hex !== undefined ? hex : 0xffffff } ) );
+
+	}
 
 	//
 
@@ -45461,6 +45791,20 @@
 		}
 
 	} );
+
+	function XHRLoader( manager ) {
+
+		console.warn( 'THREE.XHRLoader has been renamed to THREE.FileLoader.' );
+		return new FileLoader( manager );
+
+	}
+
+	function BinaryTextureLoader( manager ) {
+
+		console.warn( 'THREE.BinaryTextureLoader has been renamed to THREE.DataTextureLoader.' );
+		return new DataTextureLoader( manager );
+
+	}
 
 	//
 
@@ -46761,6 +47105,37 @@
 
 	};
 
+	//
+
+	var GeometryUtils = {
+
+		merge: function ( geometry1, geometry2, materialIndexOffset ) {
+
+			console.warn( 'THREE.GeometryUtils: .merge() has been moved to Geometry. Use geometry.merge( geometry2, matrix, materialIndexOffset ) instead.' );
+			var matrix;
+
+			if ( geometry2.isMesh ) {
+
+				geometry2.matrixAutoUpdate && geometry2.updateMatrix();
+
+				matrix = geometry2.matrix;
+				geometry2 = geometry2.geometry;
+
+			}
+
+			geometry1.merge( geometry2, matrix, materialIndexOffset );
+
+		},
+
+		center: function ( geometry ) {
+
+			console.warn( 'THREE.GeometryUtils: .center() has been moved to Geometry. Use geometry.center() instead.' );
+			return geometry.center();
+
+		}
+
+	};
+
 	ImageUtils.crossOrigin = undefined;
 
 	ImageUtils.loadTexture = function ( url, mapping, onLoad, onError ) {
@@ -46804,6 +47179,484 @@
 		console.error( 'THREE.ImageUtils.loadCompressedTextureCube has been removed. Use THREE.DDSLoader instead.' );
 
 	};
+
+	//
+
+	function Projector() {
+
+		console.error( 'THREE.Projector has been moved to /examples/js/renderers/Projector.js.' );
+
+		this.projectVector = function ( vector, camera ) {
+
+			console.warn( 'THREE.Projector: .projectVector() is now vector.project().' );
+			vector.project( camera );
+
+		};
+
+		this.unprojectVector = function ( vector, camera ) {
+
+			console.warn( 'THREE.Projector: .unprojectVector() is now vector.unproject().' );
+			vector.unproject( camera );
+
+		};
+
+		this.pickingRay = function () {
+
+			console.error( 'THREE.Projector: .pickingRay() is now raycaster.setFromCamera().' );
+
+		};
+
+	}
+
+	//
+
+	function CanvasRenderer() {
+
+		console.error( 'THREE.CanvasRenderer has been moved to /examples/js/renderers/CanvasRenderer.js' );
+
+		this.domElement = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+		this.clear = function () {};
+		this.render = function () {};
+		this.setClearColor = function () {};
+		this.setSize = function () {};
+
+	}
+
+	//
+
+	var SceneUtils = {
+
+		createMultiMaterialObject: function ( /* geometry, materials */ ) {
+
+			console.error( 'THREE.SceneUtils has been moved to /examples/js/utils/SceneUtils.js' );
+
+		},
+
+		detach: function ( /* child, parent, scene */ ) {
+
+			console.error( 'THREE.SceneUtils has been moved to /examples/js/utils/SceneUtils.js' );
+
+		},
+
+		attach: function ( /* child, scene, parent */ ) {
+
+			console.error( 'THREE.SceneUtils has been moved to /examples/js/utils/SceneUtils.js' );
+
+		}
+
+	};
+
+	//
+
+	function LensFlare() {
+
+		console.error( 'THREE.LensFlare has been moved to /examples/js/objects/Lensflare.js' );
+
+	}
+
+	var THREE$1 = /*#__PURE__*/Object.freeze({
+		WebGLRenderTargetCube: WebGLRenderTargetCube,
+		WebGLRenderTarget: WebGLRenderTarget,
+		WebGLRenderer: WebGLRenderer,
+		ShaderLib: ShaderLib,
+		UniformsLib: UniformsLib,
+		UniformsUtils: UniformsUtils,
+		ShaderChunk: ShaderChunk,
+		FogExp2: FogExp2,
+		Fog: Fog,
+		Scene: Scene,
+		Sprite: Sprite,
+		LOD: LOD,
+		SkinnedMesh: SkinnedMesh,
+		Skeleton: Skeleton,
+		Bone: Bone,
+		Mesh: Mesh,
+		LineSegments: LineSegments,
+		LineLoop: LineLoop,
+		Line: Line,
+		Points: Points,
+		Group: Group,
+		VideoTexture: VideoTexture,
+		DataTexture: DataTexture,
+		CompressedTexture: CompressedTexture,
+		CubeTexture: CubeTexture,
+		CanvasTexture: CanvasTexture,
+		DepthTexture: DepthTexture,
+		Texture: Texture,
+		CompressedTextureLoader: CompressedTextureLoader,
+		DataTextureLoader: DataTextureLoader,
+		CubeTextureLoader: CubeTextureLoader,
+		TextureLoader: TextureLoader,
+		ObjectLoader: ObjectLoader,
+		MaterialLoader: MaterialLoader,
+		BufferGeometryLoader: BufferGeometryLoader,
+		DefaultLoadingManager: DefaultLoadingManager,
+		LoadingManager: LoadingManager,
+		JSONLoader: JSONLoader,
+		ImageLoader: ImageLoader,
+		ImageBitmapLoader: ImageBitmapLoader,
+		FontLoader: FontLoader,
+		FileLoader: FileLoader,
+		Loader: Loader,
+		LoaderUtils: LoaderUtils,
+		Cache: Cache,
+		AudioLoader: AudioLoader,
+		SpotLightShadow: SpotLightShadow,
+		SpotLight: SpotLight,
+		PointLight: PointLight,
+		RectAreaLight: RectAreaLight,
+		HemisphereLight: HemisphereLight,
+		DirectionalLightShadow: DirectionalLightShadow,
+		DirectionalLight: DirectionalLight,
+		AmbientLight: AmbientLight,
+		LightShadow: LightShadow,
+		Light: Light,
+		StereoCamera: StereoCamera,
+		PerspectiveCamera: PerspectiveCamera,
+		OrthographicCamera: OrthographicCamera,
+		CubeCamera: CubeCamera,
+		ArrayCamera: ArrayCamera,
+		Camera: Camera,
+		AudioListener: AudioListener,
+		PositionalAudio: PositionalAudio,
+		AudioContext: AudioContext,
+		AudioAnalyser: AudioAnalyser,
+		Audio: Audio,
+		VectorKeyframeTrack: VectorKeyframeTrack,
+		StringKeyframeTrack: StringKeyframeTrack,
+		QuaternionKeyframeTrack: QuaternionKeyframeTrack,
+		NumberKeyframeTrack: NumberKeyframeTrack,
+		ColorKeyframeTrack: ColorKeyframeTrack,
+		BooleanKeyframeTrack: BooleanKeyframeTrack,
+		PropertyMixer: PropertyMixer,
+		PropertyBinding: PropertyBinding,
+		KeyframeTrack: KeyframeTrack,
+		AnimationUtils: AnimationUtils,
+		AnimationObjectGroup: AnimationObjectGroup,
+		AnimationMixer: AnimationMixer,
+		AnimationClip: AnimationClip,
+		Uniform: Uniform,
+		InstancedBufferGeometry: InstancedBufferGeometry,
+		BufferGeometry: BufferGeometry,
+		Geometry: Geometry,
+		InterleavedBufferAttribute: InterleavedBufferAttribute,
+		InstancedInterleavedBuffer: InstancedInterleavedBuffer,
+		InterleavedBuffer: InterleavedBuffer,
+		InstancedBufferAttribute: InstancedBufferAttribute,
+		Face3: Face3,
+		Object3D: Object3D,
+		Raycaster: Raycaster,
+		Layers: Layers,
+		EventDispatcher: EventDispatcher,
+		Clock: Clock,
+		QuaternionLinearInterpolant: QuaternionLinearInterpolant,
+		LinearInterpolant: LinearInterpolant,
+		DiscreteInterpolant: DiscreteInterpolant,
+		CubicInterpolant: CubicInterpolant,
+		Interpolant: Interpolant,
+		Triangle: Triangle,
+		Math: _Math,
+		Spherical: Spherical,
+		Cylindrical: Cylindrical,
+		Plane: Plane,
+		Frustum: Frustum,
+		Sphere: Sphere,
+		Ray: Ray,
+		Matrix4: Matrix4,
+		Matrix3: Matrix3,
+		Box3: Box3,
+		Box2: Box2,
+		Line3: Line3,
+		Euler: Euler,
+		Vector4: Vector4,
+		Vector3: Vector3,
+		Vector2: Vector2,
+		Quaternion: Quaternion,
+		Color: Color,
+		ImmediateRenderObject: ImmediateRenderObject,
+		VertexNormalsHelper: VertexNormalsHelper,
+		SpotLightHelper: SpotLightHelper,
+		SkeletonHelper: SkeletonHelper,
+		PointLightHelper: PointLightHelper,
+		RectAreaLightHelper: RectAreaLightHelper,
+		HemisphereLightHelper: HemisphereLightHelper,
+		GridHelper: GridHelper,
+		PolarGridHelper: PolarGridHelper,
+		FaceNormalsHelper: FaceNormalsHelper,
+		DirectionalLightHelper: DirectionalLightHelper,
+		CameraHelper: CameraHelper,
+		BoxHelper: BoxHelper,
+		Box3Helper: Box3Helper,
+		PlaneHelper: PlaneHelper,
+		ArrowHelper: ArrowHelper,
+		AxesHelper: AxesHelper,
+		Shape: Shape,
+		Path: Path,
+		ShapePath: ShapePath,
+		Font: Font,
+		CurvePath: CurvePath,
+		Curve: Curve,
+		ImageUtils: ImageUtils,
+		ShapeUtils: ShapeUtils,
+		WebGLUtils: WebGLUtils,
+		WireframeGeometry: WireframeGeometry,
+		ParametricGeometry: ParametricGeometry,
+		ParametricBufferGeometry: ParametricBufferGeometry,
+		TetrahedronGeometry: TetrahedronGeometry,
+		TetrahedronBufferGeometry: TetrahedronBufferGeometry,
+		OctahedronGeometry: OctahedronGeometry,
+		OctahedronBufferGeometry: OctahedronBufferGeometry,
+		IcosahedronGeometry: IcosahedronGeometry,
+		IcosahedronBufferGeometry: IcosahedronBufferGeometry,
+		DodecahedronGeometry: DodecahedronGeometry,
+		DodecahedronBufferGeometry: DodecahedronBufferGeometry,
+		PolyhedronGeometry: PolyhedronGeometry,
+		PolyhedronBufferGeometry: PolyhedronBufferGeometry,
+		TubeGeometry: TubeGeometry,
+		TubeBufferGeometry: TubeBufferGeometry,
+		TorusKnotGeometry: TorusKnotGeometry,
+		TorusKnotBufferGeometry: TorusKnotBufferGeometry,
+		TorusGeometry: TorusGeometry,
+		TorusBufferGeometry: TorusBufferGeometry,
+		TextGeometry: TextGeometry,
+		TextBufferGeometry: TextBufferGeometry,
+		SphereGeometry: SphereGeometry,
+		SphereBufferGeometry: SphereBufferGeometry,
+		RingGeometry: RingGeometry,
+		RingBufferGeometry: RingBufferGeometry,
+		PlaneGeometry: PlaneGeometry,
+		PlaneBufferGeometry: PlaneBufferGeometry,
+		LatheGeometry: LatheGeometry,
+		LatheBufferGeometry: LatheBufferGeometry,
+		ShapeGeometry: ShapeGeometry,
+		ShapeBufferGeometry: ShapeBufferGeometry,
+		ExtrudeGeometry: ExtrudeGeometry,
+		ExtrudeBufferGeometry: ExtrudeBufferGeometry,
+		EdgesGeometry: EdgesGeometry,
+		ConeGeometry: ConeGeometry,
+		ConeBufferGeometry: ConeBufferGeometry,
+		CylinderGeometry: CylinderGeometry,
+		CylinderBufferGeometry: CylinderBufferGeometry,
+		CircleGeometry: CircleGeometry,
+		CircleBufferGeometry: CircleBufferGeometry,
+		BoxGeometry: BoxGeometry,
+		BoxBufferGeometry: BoxBufferGeometry,
+		ShadowMaterial: ShadowMaterial,
+		SpriteMaterial: SpriteMaterial,
+		RawShaderMaterial: RawShaderMaterial,
+		ShaderMaterial: ShaderMaterial,
+		PointsMaterial: PointsMaterial,
+		MeshPhysicalMaterial: MeshPhysicalMaterial,
+		MeshStandardMaterial: MeshStandardMaterial,
+		MeshPhongMaterial: MeshPhongMaterial,
+		MeshToonMaterial: MeshToonMaterial,
+		MeshNormalMaterial: MeshNormalMaterial,
+		MeshLambertMaterial: MeshLambertMaterial,
+		MeshDepthMaterial: MeshDepthMaterial,
+		MeshDistanceMaterial: MeshDistanceMaterial,
+		MeshBasicMaterial: MeshBasicMaterial,
+		LineDashedMaterial: LineDashedMaterial,
+		LineBasicMaterial: LineBasicMaterial,
+		Material: Material,
+		Float64BufferAttribute: Float64BufferAttribute,
+		Float32BufferAttribute: Float32BufferAttribute,
+		Uint32BufferAttribute: Uint32BufferAttribute,
+		Int32BufferAttribute: Int32BufferAttribute,
+		Uint16BufferAttribute: Uint16BufferAttribute,
+		Int16BufferAttribute: Int16BufferAttribute,
+		Uint8ClampedBufferAttribute: Uint8ClampedBufferAttribute,
+		Uint8BufferAttribute: Uint8BufferAttribute,
+		Int8BufferAttribute: Int8BufferAttribute,
+		BufferAttribute: BufferAttribute,
+		ArcCurve: ArcCurve,
+		CatmullRomCurve3: CatmullRomCurve3,
+		CubicBezierCurve: CubicBezierCurve,
+		CubicBezierCurve3: CubicBezierCurve3,
+		EllipseCurve: EllipseCurve,
+		LineCurve: LineCurve,
+		LineCurve3: LineCurve3,
+		QuadraticBezierCurve: QuadraticBezierCurve,
+		QuadraticBezierCurve3: QuadraticBezierCurve3,
+		SplineCurve: SplineCurve,
+		REVISION: REVISION,
+		MOUSE: MOUSE,
+		CullFaceNone: CullFaceNone,
+		CullFaceBack: CullFaceBack,
+		CullFaceFront: CullFaceFront,
+		CullFaceFrontBack: CullFaceFrontBack,
+		FrontFaceDirectionCW: FrontFaceDirectionCW,
+		FrontFaceDirectionCCW: FrontFaceDirectionCCW,
+		BasicShadowMap: BasicShadowMap,
+		PCFShadowMap: PCFShadowMap,
+		PCFSoftShadowMap: PCFSoftShadowMap,
+		FrontSide: FrontSide,
+		BackSide: BackSide,
+		DoubleSide: DoubleSide,
+		FlatShading: FlatShading,
+		SmoothShading: SmoothShading,
+		NoColors: NoColors,
+		FaceColors: FaceColors,
+		VertexColors: VertexColors,
+		NoBlending: NoBlending,
+		NormalBlending: NormalBlending,
+		AdditiveBlending: AdditiveBlending,
+		SubtractiveBlending: SubtractiveBlending,
+		MultiplyBlending: MultiplyBlending,
+		CustomBlending: CustomBlending,
+		AddEquation: AddEquation,
+		SubtractEquation: SubtractEquation,
+		ReverseSubtractEquation: ReverseSubtractEquation,
+		MinEquation: MinEquation,
+		MaxEquation: MaxEquation,
+		ZeroFactor: ZeroFactor,
+		OneFactor: OneFactor,
+		SrcColorFactor: SrcColorFactor,
+		OneMinusSrcColorFactor: OneMinusSrcColorFactor,
+		SrcAlphaFactor: SrcAlphaFactor,
+		OneMinusSrcAlphaFactor: OneMinusSrcAlphaFactor,
+		DstAlphaFactor: DstAlphaFactor,
+		OneMinusDstAlphaFactor: OneMinusDstAlphaFactor,
+		DstColorFactor: DstColorFactor,
+		OneMinusDstColorFactor: OneMinusDstColorFactor,
+		SrcAlphaSaturateFactor: SrcAlphaSaturateFactor,
+		NeverDepth: NeverDepth,
+		AlwaysDepth: AlwaysDepth,
+		LessDepth: LessDepth,
+		LessEqualDepth: LessEqualDepth,
+		EqualDepth: EqualDepth,
+		GreaterEqualDepth: GreaterEqualDepth,
+		GreaterDepth: GreaterDepth,
+		NotEqualDepth: NotEqualDepth,
+		MultiplyOperation: MultiplyOperation,
+		MixOperation: MixOperation,
+		AddOperation: AddOperation,
+		NoToneMapping: NoToneMapping,
+		LinearToneMapping: LinearToneMapping,
+		ReinhardToneMapping: ReinhardToneMapping,
+		Uncharted2ToneMapping: Uncharted2ToneMapping,
+		CineonToneMapping: CineonToneMapping,
+		UVMapping: UVMapping,
+		CubeReflectionMapping: CubeReflectionMapping,
+		CubeRefractionMapping: CubeRefractionMapping,
+		EquirectangularReflectionMapping: EquirectangularReflectionMapping,
+		EquirectangularRefractionMapping: EquirectangularRefractionMapping,
+		SphericalReflectionMapping: SphericalReflectionMapping,
+		CubeUVReflectionMapping: CubeUVReflectionMapping,
+		CubeUVRefractionMapping: CubeUVRefractionMapping,
+		RepeatWrapping: RepeatWrapping,
+		ClampToEdgeWrapping: ClampToEdgeWrapping,
+		MirroredRepeatWrapping: MirroredRepeatWrapping,
+		NearestFilter: NearestFilter,
+		NearestMipMapNearestFilter: NearestMipMapNearestFilter,
+		NearestMipMapLinearFilter: NearestMipMapLinearFilter,
+		LinearFilter: LinearFilter,
+		LinearMipMapNearestFilter: LinearMipMapNearestFilter,
+		LinearMipMapLinearFilter: LinearMipMapLinearFilter,
+		UnsignedByteType: UnsignedByteType,
+		ByteType: ByteType,
+		ShortType: ShortType,
+		UnsignedShortType: UnsignedShortType,
+		IntType: IntType,
+		UnsignedIntType: UnsignedIntType,
+		FloatType: FloatType,
+		HalfFloatType: HalfFloatType,
+		UnsignedShort4444Type: UnsignedShort4444Type,
+		UnsignedShort5551Type: UnsignedShort5551Type,
+		UnsignedShort565Type: UnsignedShort565Type,
+		UnsignedInt248Type: UnsignedInt248Type,
+		AlphaFormat: AlphaFormat,
+		RGBFormat: RGBFormat,
+		RGBAFormat: RGBAFormat,
+		LuminanceFormat: LuminanceFormat,
+		LuminanceAlphaFormat: LuminanceAlphaFormat,
+		RGBEFormat: RGBEFormat,
+		DepthFormat: DepthFormat,
+		DepthStencilFormat: DepthStencilFormat,
+		RGB_S3TC_DXT1_Format: RGB_S3TC_DXT1_Format,
+		RGBA_S3TC_DXT1_Format: RGBA_S3TC_DXT1_Format,
+		RGBA_S3TC_DXT3_Format: RGBA_S3TC_DXT3_Format,
+		RGBA_S3TC_DXT5_Format: RGBA_S3TC_DXT5_Format,
+		RGB_PVRTC_4BPPV1_Format: RGB_PVRTC_4BPPV1_Format,
+		RGB_PVRTC_2BPPV1_Format: RGB_PVRTC_2BPPV1_Format,
+		RGBA_PVRTC_4BPPV1_Format: RGBA_PVRTC_4BPPV1_Format,
+		RGBA_PVRTC_2BPPV1_Format: RGBA_PVRTC_2BPPV1_Format,
+		RGB_ETC1_Format: RGB_ETC1_Format,
+		RGBA_ASTC_4x4_Format: RGBA_ASTC_4x4_Format,
+		RGBA_ASTC_5x4_Format: RGBA_ASTC_5x4_Format,
+		RGBA_ASTC_5x5_Format: RGBA_ASTC_5x5_Format,
+		RGBA_ASTC_6x5_Format: RGBA_ASTC_6x5_Format,
+		RGBA_ASTC_6x6_Format: RGBA_ASTC_6x6_Format,
+		RGBA_ASTC_8x5_Format: RGBA_ASTC_8x5_Format,
+		RGBA_ASTC_8x6_Format: RGBA_ASTC_8x6_Format,
+		RGBA_ASTC_8x8_Format: RGBA_ASTC_8x8_Format,
+		RGBA_ASTC_10x5_Format: RGBA_ASTC_10x5_Format,
+		RGBA_ASTC_10x6_Format: RGBA_ASTC_10x6_Format,
+		RGBA_ASTC_10x8_Format: RGBA_ASTC_10x8_Format,
+		RGBA_ASTC_10x10_Format: RGBA_ASTC_10x10_Format,
+		RGBA_ASTC_12x10_Format: RGBA_ASTC_12x10_Format,
+		RGBA_ASTC_12x12_Format: RGBA_ASTC_12x12_Format,
+		LoopOnce: LoopOnce,
+		LoopRepeat: LoopRepeat,
+		LoopPingPong: LoopPingPong,
+		InterpolateDiscrete: InterpolateDiscrete,
+		InterpolateLinear: InterpolateLinear,
+		InterpolateSmooth: InterpolateSmooth,
+		ZeroCurvatureEnding: ZeroCurvatureEnding,
+		ZeroSlopeEnding: ZeroSlopeEnding,
+		WrapAroundEnding: WrapAroundEnding,
+		TrianglesDrawMode: TrianglesDrawMode,
+		TriangleStripDrawMode: TriangleStripDrawMode,
+		TriangleFanDrawMode: TriangleFanDrawMode,
+		LinearEncoding: LinearEncoding,
+		sRGBEncoding: sRGBEncoding,
+		GammaEncoding: GammaEncoding,
+		RGBEEncoding: RGBEEncoding,
+		LogLuvEncoding: LogLuvEncoding,
+		RGBM7Encoding: RGBM7Encoding,
+		RGBM16Encoding: RGBM16Encoding,
+		RGBDEncoding: RGBDEncoding,
+		BasicDepthPacking: BasicDepthPacking,
+		RGBADepthPacking: RGBADepthPacking,
+		TangentSpaceNormalMap: TangentSpaceNormalMap,
+		ObjectSpaceNormalMap: ObjectSpaceNormalMap,
+		CubeGeometry: BoxGeometry,
+		Face4: Face4,
+		LineStrip: LineStrip,
+		LinePieces: LinePieces,
+		MeshFaceMaterial: MeshFaceMaterial,
+		MultiMaterial: MultiMaterial,
+		PointCloud: PointCloud,
+		Particle: Particle,
+		ParticleSystem: ParticleSystem,
+		PointCloudMaterial: PointCloudMaterial,
+		ParticleBasicMaterial: ParticleBasicMaterial,
+		ParticleSystemMaterial: ParticleSystemMaterial,
+		Vertex: Vertex,
+		DynamicBufferAttribute: DynamicBufferAttribute,
+		Int8Attribute: Int8Attribute,
+		Uint8Attribute: Uint8Attribute,
+		Uint8ClampedAttribute: Uint8ClampedAttribute,
+		Int16Attribute: Int16Attribute,
+		Uint16Attribute: Uint16Attribute,
+		Int32Attribute: Int32Attribute,
+		Uint32Attribute: Uint32Attribute,
+		Float32Attribute: Float32Attribute,
+		Float64Attribute: Float64Attribute,
+		ClosedSplineCurve3: ClosedSplineCurve3,
+		SplineCurve3: SplineCurve3,
+		Spline: Spline,
+		AxisHelper: AxisHelper,
+		BoundingBoxHelper: BoundingBoxHelper,
+		EdgesHelper: EdgesHelper,
+		WireframeHelper: WireframeHelper,
+		XHRLoader: XHRLoader,
+		BinaryTextureLoader: BinaryTextureLoader,
+		GeometryUtils: GeometryUtils,
+		Projector: Projector,
+		CanvasRenderer: CanvasRenderer,
+		SceneUtils: SceneUtils,
+		LensFlare: LensFlare
+	});
 
 	/**
 	 * @author Eberhard Graether / http://egraether.com/
@@ -47764,10 +48617,24 @@
 
 	};
 
-	//import { TrackballControls } from  'three-trackballcontrols'
+	/**
+	* Some handy static functions to do stuff that are not strictly related to the business of the project
+	*/
+	class Tools {
 
+	  /**
+	   * Handy function to deal with option object we pass in argument of function.
+	   * Allows the return of a default value if the `optionName` is not available in
+	   * the `optionObj`
+	   * @param {Object} optionObj - the object that contain the options
+	   * @param {String} optionName - the name of the option desired, attribute of `optionObj`
+	   * @param {any} optionDefaultValue - default values to be returned in case `optionName` is not an attribute of `optionObj`
+	   */
+	  static getOption (optionObj, optionName, optionDefaultValue) {
+	    return (optionObj && optionName in optionObj) ? optionObj[optionName] : optionDefaultValue
+	  }
 
-
+	}
 
 	/**
 	 * ThreeContext creates a WebGL context using THREEjs. It also handle mouse control.
@@ -47775,11 +48642,11 @@
 	 */
 	class ThreeContext {
 
-
+	  /**
+	   * @param {DONObject} divObj - the div object as a DOM element. Will be used to host the WebGL context
+	   * created by THREE
+	   */
 	  constructor ( divObj=null ) {
-
-
-
 	    if (!divObj) {
 	      console.error("The ThreeContext needs a div object");
 	      return
@@ -47796,8 +48663,8 @@
 	    this._scene = new Scene();
 	    this._scene.add(new AmbientLight( 0x444444 ) );
 
-	    //var axesHelper = new THREE.AxesHelper( 1000 )
-	    //this._scene.add( axesHelper )
+	    var axesHelper = new AxesHelper( 1000 );
+	    this._scene.add( axesHelper );
 
 	    // adding some light
 	    var light1 = new DirectionalLight( 0xffffff, 0.5 );
@@ -47826,32 +48693,76 @@
 	      that._controls.handleResize();
 	    }, false );
 
-
-	    //this.addStuff()
+	    //this._addStuff()
 	    this._animate();
 	  }
 
 
-	  addStuff () {
+	  /**
+	   * @private
+	   * Add stuff to the scene, only for testing
+	   */
+	  _addStuff () {
+
+	    window.THREE = THREE$1;
+
 	    /*
-	    let geometry = new THREE.SphereGeometry( 10, 32, 32 )
-	    let material = new THREE.MeshPhongMaterial( {color: 0xffff00} )
-	    let sphere = new THREE.Mesh( geometry, material )
-	    //sphere.position.x = - span/2 + Math.random()*span
-	    //sphere.position.y = - span/2 + Math.random()*span
-	    //sphere.position.z = - span/2 + Math.random()*span
-	    this._scene.add( sphere )
+	    var geometry = new THREE.CylinderGeometry( 5, 5, 20, 32 )
+	    //var geometry = new THREE.CylinderBufferGeometry( 5, 5, 20, 32 )
+
+	    var material = new THREE.MeshPhongMaterial( {color: 0xff00ff} )
+	    var cylinder = new THREE.Mesh( geometry, material )
+	    this._scene.add( cylinder )
+	    console.log(cylinder)
 	    */
+
+
+	    function drawCylinder(vStart, vEnd, rStart, rEnd, openEnd){
+	      var HALF_PI = Math.PI * .5;
+	      var distance = vStart.distanceTo(vEnd);
+	      var position  = vEnd.clone().add(vStart).divideScalar(2);
+
+	      var material = new MeshLambertMaterial({color:0x0000ff});
+	      var cylinder = new CylinderGeometry(rStart, rEnd , distance, 32, 1, openEnd);
+
+	      var orientation = new Matrix4();//a new orientation matrix to offset pivot
+	      var offsetRotation = new Matrix4();//a matrix to fix pivot rotation
+	      var offsetPosition = new Matrix4();//a matrix to fix pivot position
+	      orientation.lookAt(vStart,vEnd,new Vector3(0,1,0));//look at destination
+	      offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
+	      orientation.multiply(offsetRotation);//combine orientation with rotation transformations
+	      cylinder.applyMatrix(orientation);
+
+	      var mesh = new Mesh(cylinder,material);
+	      mesh.position.x = position.x;
+	      mesh.position.y = position.y;
+	      mesh.position.z = position.z;
+	      return mesh
+	    }
+
+	    let c = drawCylinder( new Vector3(1000, 0, 0), new Vector3(0, 0, 1000), 10, 100, false);
+	    this._scene.add( c );
+	    console.log( c );
+
+
 	  }
 
 
 	  /**
 	   * Adds a mesh from its URL. The mesh has to encoded into the STL format
 	   * @param {String} url - the url of the STL file
-	   * @param {String} name - optional name of this mesh (useful for further operations such as centering the view)
+	   * @param {Object} options - the options object
+	   * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
+	   * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+	   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
 	   */
-	  addStlToMeshCollection (url, name=null, focusOn=true) {
+	  addStlToMeshCollection (url, options) {
 	    let that = this;
+
+	    // generate a random name in case none was provided
+	    let name = Tools.getOption( options, "name", "mesh_" + Math.round(Math.random() * 1000000).toString() );
+	    let focusOn = Tools.getOption( options, "focusOn", true );
+
 	    var loader = new STLLoader();
 	    //loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
 	    loader.load( url, function ( geometry ) {
@@ -47872,18 +48783,25 @@
 	        material
 	      );
 
-	      // generate a random name in case none was provided
-	      if (!name)
-	        name = "mesh_" + Math.round(Math.random() * 1000000).toString();
-
 	      that._scene.add( mesh );
 	      that._meshCollection[name] = mesh;
 
 	      if (focusOn)
 	        that.focusOnMesh(name);
+
+	      // call a callback if declared, with the name of the mesh in arg
+	      let onDone = Tools.getOption( options, "onDone", null );
+	      if (onDone) {
+	        onDone( name );
+	      }
 	    });
 	  }
 
+
+	  /**
+	   * @private
+	   * deals with rendering and updating the controls
+	   */
 	  _animate () {
 	    requestAnimationFrame( this._animate.bind(this) );
 	    this._controls.update();
@@ -47896,19 +48814,29 @@
 	   * Add a MorphoPolyline object (which are ThreeJS Object3D) into the scene of this
 	   * ThreeContext.
 	   * @param {MorphoPolyline} morphoPolyline - a MorphoPolyline instance
-	   * @param {String} name - the identifier to give to the MorphoPolyline instance within a local collection
+	   * @param {Object} options - the option object
+	   * @param {String} options.name - the identifier to give to the MorphoPolyline instance within a local collection
+	   * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
+	   * @param {Function} options.onDone - callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
 	   */
-	  addMorphologyPolyline (morphoPolyline, name=null, focusOn=true) {
+	  addMorphologyPolyline (morphoPolyline, options) {
 	    // generate a random name in case none was provided
-	    if (!name)
-	      name = "mesh_" + Math.round(Math.random() * 1000000).toString();
+	    let name = Tools.getOption( options, "name", "morpho_" + Math.round(Math.random() * 1000000).toString() );
+	    let focusOn = Tools.getOption( options, "focusOn", true );
 
 	    this._morphologyPolylineCollection[ name ] = morphoPolyline;
 	    this._scene.add( morphoPolyline );
 
 	    if (focusOn)
 	      this.focusOnMorphology( name );
+
+	    // call a callback if declared, with the name of the morphology in arg
+	    let onDone = Tools.getOption( options, "onDone", null );
+	    if (onDone) {
+	      onDone( name );
+	    }
 	  }
+
 
 	  /**
 	   * Make the camera focus on a specific morphology
@@ -47928,8 +48856,11 @@
 	  }
 
 
+	  /**
+	   * Focus on a mesh, given its name
+	   * @param {string} name - name of the mesh to focus on
+	   */
 	  focusOnMesh (name) {
-	    console.log('center');
 	    let mesh = this._meshCollection[name];
 	    let boundingSphere = mesh.geometry.boundingSphere;
 
@@ -47942,7 +48873,11 @@
 
 	/**
 	 * The MorphologyPolyline is the simplest 3D representation of a morphology, using
-	 * simple polylines. It extends from THREE.Object so that it's easy to integrate.
+	 * simple polylines.
+	 * Compared to its cylinder-based alternative (MorphologyPolycylinder), this one
+	 * is more suitable for displaying several morphologies (up to maybe a hundred,
+	 * depending on length and machine performance)
+	 * MorphologyPolyline extends from THREE.Object so that it's easy to integrate.
 	 * It's constructor
 	 */
 	class MorphologyPolyline extends Object3D {
@@ -47951,15 +48886,20 @@
 	   * @constructor
 	   * Builds a moprho as a polyline
 	   * @param {Object} morpho - raw object that describes a morphology (usually straight from a JSON file)
+	   * @param {object} options - the option object
+	   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
 	   */
-	  constructor (morpho) {
+	  constructor (morpho, options) {
 	    super();
+
+	    // fetch the optional color
+	    let color = Tools.getOption(options, 'color', null);
 
 	    // simple color lookup, so that every section type is shown in a different color
 	    this._sectionColors = {
-	      axon: 0x0000ff,
-	      basal_dendrite: 0x990000,
-	      apical_dendrite: 0x009900,
+	      axon: color || 0x0000ff,
+	      basal_dendrite: color || 0x990000,
+	      apical_dendrite: color || 0x009900,
 	    };
 
 	    // creating a polyline for each section
@@ -47997,11 +48937,11 @@
 	   * @return {THREE.Line} the constructed polyline
 	   */
 	  _buildSection (sectionDescription) {
-	    var material = new LineBasicMaterial({
+	    let material = new LineBasicMaterial({
 	      color: this._sectionColors[sectionDescription.type]
 	    });
 
-	    var geometry = new Geometry();
+	    let geometry = new Geometry();
 
 	    for (let i=0; i<sectionDescription.points.length; i++)
 	    {
@@ -48012,7 +48952,7 @@
 	      ));
 	    }
 
-	    var line = new Line( geometry, material );
+	    let line = new Line( geometry, material );
 
 	    // adding some metadata as it can be useful for raycasting
 	    line.name = sectionDescription.id;
@@ -48021,6 +48961,143 @@
 	    return line
 	  }
 
+
+	}
+
+	/**
+	 * The MorphologyPolycylinder is a tubular representation of a morphology, using cylinders.
+	 * this alternative to MorphologyPolyline is heavier on CPU and GPU so is more made when
+	 * displaying a small number of morphologies.
+	 * MorphologyPolycylinder extends from THREE.Object so that it's easy to integrate.
+	 * It's constructor
+	 */
+	class MorphologyPolycylinder extends Object3D {
+
+	  /**
+	   * @constructor
+	   * Builds a moprho as a polyline
+	   * @param {Object} morpho - raw object that describes a morphology (usually straight from a JSON file)
+	   * @param {object} options - the option object
+	   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+	   */
+	  constructor (morpho, options) {
+	    super();
+
+	    // fetch the optional color
+	    let color = Tools.getOption(options, 'color', null);
+
+	    // simple color lookup, so that every section type is shown in a different color
+	    this._sectionColors = {
+	      axon: color || 0x0000ff,
+	      basal_dendrite: color || 0x990000,
+	      apical_dendrite: color || 0x009900,
+	    };
+
+	    // creating a polyline for each section
+	    for (let i=0; i<morpho.sections.length; i++) {
+	      let section = this._buildSection( morpho.sections[i] );
+	      this.add( section );
+	    }
+
+	    // adding the soma as a sphere
+	    let rawSoma = morpho.soma;
+	    let somaSphere = new Mesh(
+	      new SphereGeometry( rawSoma.radius, 32, 32 ),
+	      new MeshPhongMaterial( {color: 0xff0000} )
+	    );
+
+	    somaSphere.position.x = rawSoma.center[0];
+	    somaSphere.position.y = rawSoma.center[1];
+	    somaSphere.position.z = rawSoma.center[2];
+	    this.add( somaSphere );
+
+	    // this is because the Allen ref is not oriented the same way as WebGL
+	    this.rotateX( Math.PI );
+	    this.rotateY( Math.PI );
+
+	    // compute the bounding box, useful for further camera targeting
+	    this.box = new Box3().setFromObject(this);
+	  }
+
+
+	  /**
+	   * @private
+	   * Builds a single section from a raw segment description and returns it.
+	   * A section is usually composed of multiple segments
+	   * @param {Object} sectionDescription - sub part of the morpho raw object thar deals with a single section
+	   * @return {THREE.Line} the constructed polyline
+	   */
+	  _buildSection (sectionDescription) {
+	    let material = new MeshLambertMaterial({
+	      color: this._sectionColors[sectionDescription.type]
+	    });
+
+	    // this will contain all the cylinders of the section
+	    let sectionMeshes = new Object3D();
+
+	    for (let i=0; i<sectionDescription.points.length - 1; i++)
+	    {
+	      let cyl = this._makeCylinder(
+	        new Vector3( // vStart
+	          sectionDescription.points[i].position[0],
+	          sectionDescription.points[i].position[1],
+	          sectionDescription.points[i].position[2]
+	        ),
+	        new Vector3( // vEnd
+	          sectionDescription.points[i+1].position[0],
+	          sectionDescription.points[i+1].position[1],
+	          sectionDescription.points[i+1].position[2]
+	        ),
+	        sectionDescription.points[i].radius, // rStart
+	        sectionDescription.points[i+1].radius, // rEnd
+	        false, // openEnd
+	        material
+	      );
+
+	      sectionMeshes.add( cyl );
+	    }
+
+	    // adding some metadata as it can be useful for raycasting
+	    sectionMeshes.name = sectionDescription.id;
+	    sectionMeshes.userData[ "type" ] = sectionDescription.type;
+
+	    return sectionMeshes
+	  }
+
+
+	  /**
+	   * @private
+	   * Generate a cylinder with a starting point and en endpoint because
+	   * THREEjs does not provide that
+	   * @param {THREE.Vector3} vStart - the start position
+	   * @param {THREE.Vector3} vEnd - the end position
+	   * @param {Number} rStart - radius at the `vStart` position
+	   * @param {Number} rEnd - radius at the `vEnd` position
+	   * @param {Boolean} openEnd - cylinder has open ends if true, or closed ends if false
+	   * @param {THREE.Material} material - material to use (instead of creating a new one every time)
+	   * @return {THREE.Mesh} the mesh containing a cylinder
+	   */
+	  _makeCylinder(vStart, vEnd, rStart, rEnd, openEnd, material){
+	    let HALF_PI = Math.PI * .5;
+	    let distance = vStart.distanceTo(vEnd);
+	    let position  = vEnd.clone().add(vStart).divideScalar(2);
+
+	    let cylinder = new CylinderBufferGeometry(rStart, rEnd , distance, 32, 1, openEnd);
+
+	    let orientation = new Matrix4();//a new orientation matrix to offset pivot
+	    let offsetRotation = new Matrix4();//a matrix to fix pivot rotation
+	    let offsetPosition = new Matrix4();//a matrix to fix pivot position
+	    orientation.lookAt(vStart,vEnd,new Vector3(0,1,0));//look at destination
+	    offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
+	    orientation.multiply(offsetRotation);//combine orientation with rotation transformations
+	    cylinder.applyMatrix(orientation);
+
+	    let mesh = new Mesh(cylinder,material);
+	    mesh.position.x = position.x;
+	    mesh.position.y = position.y;
+	    mesh.position.z = position.z;
+	    return mesh
+	  }
 
 	}
 
@@ -48044,16 +49121,21 @@
 	  /**
 	   * Add a morphology to the collection so that it displays.
 	   * @param {Object} morphoObj - describes the morphology of a neuron. This data comes straight from the JSON file
-	   * @param {String} name - The name to give to this morphology. Will be used as an identifier for several operations
-	   * @param {Boolean} asPolyline - if true: shows a polyline view. false: shows a tubular view (default: true)
+	   * @param {object} options - the optional values
+	   * @param {String} options.name - The name to give to this morphology. Will be used as an identifier for several operations
+	   * @param {Boolean} options.asPolyline - if true: shows a polyline view. false: shows a tubular view (default: true)
+	   * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
+	   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
 	   */
-	  addMorphology (morphoObj, name=null, focusOn=true, asPolyline=true) {
-	    if (asPolyline) {
-	      let morpho = new MorphologyPolyline( morphoObj );
-	      console.log(morpho);
-	      //morpho.rotateY( Math.PI )
+	  addMorphology (morphoObj, options) {
+	    let asPolyline = Tools.getOption(options, "asPolyline", true);
 
-	      this._threeContext.addMorphologyPolyline(morpho, name, focusOn);
+	    if (asPolyline) {
+	      let morpho = new MorphologyPolyline( morphoObj, options );
+	      this._threeContext.addMorphologyPolyline(morpho, options);
+	    } else {
+	      let morpho = new MorphologyPolycylinder( morphoObj, options );
+	      this._threeContext.addMorphologyPolyline(morpho, options);
 	    }
 	    // TODO: the tubular version
 	  }
@@ -48062,16 +49144,16 @@
 	  /**
 	   * Adds a mesh from its URL. The mesh has to encoded into the STL format
 	   * @param {String} url - the url of the STL file
-	   * @param {String} name - optional name of this mesh (useful for further operations such as centering the view)
+	   * @param {Object} options - the options object
+	   * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
+	   * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
 	   */
-	  addStlToMeshCollection (url, name, focusOn=true) {
-	    this._threeContext.addStlToMeshCollection(url, name, focusOn);
+	  addStlToMeshCollection (url, options) {
+	    this._threeContext.addStlToMeshCollection(url, options);
 	  }
 
 
 	}
-
-	//export { Morphology } from './Morphology.js'
 
 	exports.MorphoViewer = MorphoViewer;
 
