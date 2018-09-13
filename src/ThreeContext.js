@@ -31,8 +31,8 @@ class ThreeContext {
     this._scene = new THREE.Scene()
     this._scene.add(new THREE.AmbientLight( 0x444444 ) )
 
-    var axesHelper = new THREE.AxesHelper( 1000 )
-    this._scene.add( axesHelper )
+    //var axesHelper = new THREE.AxesHelper( 1000 )
+    //this._scene.add( axesHelper )
 
     // adding some light
     var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 )
@@ -42,7 +42,7 @@ class ThreeContext {
     //light2.position.set( 0, -10, 0 )
     //this._scene.add( light2 )
 
-    this._renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } )
+    this._renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true} )
     this._renderer.setClearColor( 0xffffff, 0 )
     this._renderer.setPixelRatio( window.devicePixelRatio )
     this._renderer.setSize( window.innerWidth, window.innerHeight )

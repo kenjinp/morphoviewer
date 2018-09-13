@@ -16,7 +16,7 @@ class MorphologyPolyline extends THREE.Object3D {
   /**
    * @constructor
    * Builds a moprho as a polyline
-   * @param {Object} morpho - raw object that describes a morphology (usually straight from a JSON file)
+   * @param {Morphology} morpho - raw object that describes a morphology (usually straight from a JSON file)
    * @param {object} options - the option object
    * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
    */
@@ -30,25 +30,26 @@ class MorphologyPolyline extends THREE.Object3D {
     this._sectionColors = {
       axon: color || 0x0000ff,
       basal_dendrite: color || 0x990000,
-      apical_dendrite: color || 0x009900,
+      apical_dendrite: color || 0xf442ad, // shoud be pink
     }
 
+    let sections = morpho.getArrayOfSections()
+
     // creating a polyline for each section
-    for (let i=0; i<morpho.sections.length; i++) {
-      let section = this._buildSection( morpho.sections[i] )
-      this.add( section )
+    for (let i=0; i<sections.length; i++) {
+      let sectionPolyline = this._buildSection( sections[i] )
+      this.add( sectionPolyline )
     }
 
     // adding the soma as a sphere
-    let rawSoma = morpho.soma
+    let soma = morpho.getSoma()
     let somaSphere = new THREE.Mesh(
-      new THREE.SphereGeometry( rawSoma.radius, 32, 32 ),
+      new THREE.SphereGeometry( soma.getRadius(), 32, 32 ),
       new THREE.MeshPhongMaterial( {color: 0xff0000} )
     )
 
-    somaSphere.position.x = rawSoma.center[0]
-    somaSphere.position.y = rawSoma.center[1]
-    somaSphere.position.z = rawSoma.center[2]
+    let somaCenter = soma.getCenter()
+    somaSphere.position.set(somaCenter[0], somaCenter[1], somaCenter[2])
     this.add( somaSphere )
 
     // this is because the Allen ref is not oriented the same way as WebGL
@@ -64,30 +65,32 @@ class MorphologyPolyline extends THREE.Object3D {
    * @private
    * Builds a single section from a raw segment description and returns it.
    * A section is usually composed of multiple segments
-   * @param {Object} sectionDescription - sub part of the morpho raw object thar deals with a single section
+   * @param {Section} section - sub part of the morpho raw object thar deals with a single section
    * @return {THREE.Line} the constructed polyline
    */
-  _buildSection (sectionDescription) {
+  _buildSection (section) {
     let material = new THREE.LineBasicMaterial({
-      color: this._sectionColors[sectionDescription.type]
+      color: this._sectionColors[section.getTypename()]
     })
 
+    let sectionPoints = section.getPoints()
     let geometry = new THREE.Geometry()
 
-    for (let i=0; i<sectionDescription.points.length; i++)
+    for (let i=0; i<sectionPoints.length; i++)
     {
       geometry.vertices.push(new THREE.Vector3(
-        sectionDescription.points[i].position[0],
-        sectionDescription.points[i].position[1],
-        sectionDescription.points[i].position[2]
+        sectionPoints[i][0], // x
+        sectionPoints[i][1], // y
+        sectionPoints[i][2]  // z
       ))
     }
 
     let line = new THREE.Line( geometry, material )
 
     // adding some metadata as it can be useful for raycasting
-    line.name = sectionDescription.id
-    line.userData[ "type" ] = sectionDescription.type
+    line.name = section.getId()
+    line.userData[ "typevalue" ] = section.getTypevalue()
+    line.userData[ "typename" ] = section.getTypename()
 
     return line
   }

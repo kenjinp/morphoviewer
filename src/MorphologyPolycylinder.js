@@ -66,8 +66,8 @@ class MorphologyPolycylinder extends THREE.Object3D {
    * @return {THREE.Line} the constructed polyline
    */
   _buildSection (sectionDescription) {
-    let material = new THREE.MeshLambertMaterial({
-      color: this._sectionColors[sectionDescription.type]
+    let material = new THREE.MeshBasicMaterial({
+      color: this._sectionColors[sectionDescription.typename]
     })
 
     // this will contain all the cylinders of the section
@@ -120,7 +120,7 @@ class MorphologyPolycylinder extends THREE.Object3D {
     let distance = vStart.distanceTo(vEnd);
     let position  = vEnd.clone().add(vStart).divideScalar(2);
 
-    let cylinder = new THREE.CylinderBufferGeometry(rStart, rEnd , distance, 32, 1, openEnd);
+    let cylinder = new THREE.CylinderBufferGeometry(rStart, rEnd , distance, 8, 1, openEnd);
 
     let orientation = new THREE.Matrix4();//a new orientation matrix to offset pivot
     let offsetRotation = new THREE.Matrix4();//a matrix to fix pivot rotation

@@ -29,6 +29,7 @@
  *  var mesh = new THREE.Mesh( geometry, material );
  */
 
+import pako from 'pako'
 import * as THREE from "three"
 
 
@@ -48,20 +49,20 @@ STLLoader.prototype = {
 
     var loader = new THREE.FileLoader( scope.manager );
     loader.setResponseType( 'arraybuffer' );
-    loader.load( url, function ( text ) {
+    loader.load( url, function ( buf ) {
+
+      // trying to un-gzip it with Pako
+      try {
+        buf = pako.inflate(buf).buffer
+      } catch (err) {
+      }
 
       try {
-
-        onLoad( scope.parse( text ) );
-
+        onLoad( scope.parse( buf ) );
       } catch ( exception ) {
-
         if ( onError ) {
-
           onError( exception );
-
         }
-
       }
 
     }, onProgress, onError );

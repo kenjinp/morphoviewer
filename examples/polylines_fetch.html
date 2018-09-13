@@ -1,0 +1,108 @@
+<html>
+<head>
+  <title>Test</title>
+
+  <style>
+    #fileInput {
+      position: absolute;
+      top:0;
+      left: 0;
+    }
+
+  </style>
+
+</head>
+<body>
+  <script src="js/filepuller.min.js"></script>
+  <script src="../dist/morphoviewer.js"></script>
+
+  <div id="threedeediv"></div>
+
+
+  Open JSON morphology file file <input type="file" id="fileInput" multiple>
+
+  <script>
+
+  console.log(filepuller.read);
+    let fileInput = document.getElementById('fileInput');
+
+    // init the morpho viewer
+    let threedeediv = document.getElementById( 'threedeediv' )
+    let morphoViewer = new morphoviewer.MorphoViewer(threedeediv)
+
+    // this callback is meant to tell when the mesh is ready and displayed
+    // but also to retrieve its name in the case it was not given by the user and
+    // randomly generated (this name can be used for further operations)
+    let optionalCallback = function(name){
+      console.log(`The mesh ${name} was added.`)
+    }
+
+    // optional: we load a brain model. Last param is for focusing on it
+    morphoViewer.addStlToMeshCollection(
+      '../data/meshes/mask_smooth_simple.stl',
+      {
+        name: "brain", // the name of it?
+        focusOn: true, // do we want to focus on it when it's loaded?
+        onDone: optionalCallback // what do we do when it's loaded?
+      }
+    )
+
+    // manages file input
+    fileInput.addEventListener('change', function(e) {
+      var files = e.target.files;
+
+      if( !files.length ){
+        return;
+      }
+
+      for(let i=0; i<files.length; i++){
+        filepuller.read( files[i], true, function(error, data){
+          if (error) {
+            console.warn("ERROR" + error)
+            return
+          }
+          readMorphoFile(data)
+        })
+      }
+    })
+
+
+    filepuller.read( "../data/morphos/AA0300.json.gz", true, function(error, data){
+      if (error) {
+        console.warn("ERROR" + error)
+        return
+      }
+      readMorphoFile(data)
+    })
+
+
+    // Deals with the JSON content of the file
+    // @param {String} buff - buff is a json string
+    function readMorphoFile( buff ){
+      let rawMorphoObj = JSON.parse( buff )
+
+      // this callback is meant to tell when the morpholoy is ready and displayed
+      // but also to retrieve its name in the case it was not given by the user and
+      // randomly generated (this name can be used for further operations)
+      let optionalCallback = function(name){
+        console.log(`The morphology ${name} was added.`)
+      }
+
+      // we display a morpho, second param is it's name (null: a autogenarated will do)
+      // last param is "do we focus the camera on it"
+      morphoViewer.addMorphology (
+        rawMorphoObj,
+        {
+          focusOn: false, // do we want the camera to focus on this one when it's loaded?
+          asPolyline: true, // with polylines of with cylinders?
+          onDone: optionalCallback, // what to do when it's loaded?
+          color: Math.floor(Math.random() * 0xFFFFFF), // if not present, all neurones will have there axon in blue, basal dendrite in red and apical dendrite in green
+        }
+      )
+
+    }
+
+  </script>
+
+</body>
+</html>

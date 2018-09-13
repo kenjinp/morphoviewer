@@ -2,6 +2,7 @@ import { ThreeContext } from './ThreeContext.js'
 import { MorphologyPolyline } from './MorphologyPolyline.js'
 import { MorphologyPolycylinder } from './MorphologyPolycylinder.js'
 import { Tools } from './Tools.js'
+import morphologycorejs from 'morphologycorejs'
 
 
 /**
@@ -31,17 +32,23 @@ class MorphoViewer {
    * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
    */
   addMorphology (morphoObj, options) {
+    // create a mirphology object
+    let morphology = new morphologycorejs.Morphology()
+    morphology.buildFromRawMorphology( morphoObj )
+    //console.log( morphology )
+
     let asPolyline = Tools.getOption(options, "asPolyline", true)
 
     if (asPolyline) {
-      let morpho = new MorphologyPolyline( morphoObj, options )
-      this._threeContext.addMorphologyPolyline(morpho, options)
+      let morphoPolyLine = new MorphologyPolyline( morphology, options )
+      this._threeContext.addMorphologyPolyline(morphoPolyLine, options)
     } else {
       let morpho = new MorphologyPolycylinder( morphoObj, options )
       this._threeContext.addMorphologyPolyline(morpho, options)
     }
-    // TODO: the tubular version
   }
+
+
 
 
   /**

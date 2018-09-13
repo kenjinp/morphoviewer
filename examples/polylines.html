@@ -13,7 +13,7 @@
 
 </head>
 <body>
-  <!-- importing the automatically build module -->
+  <script src="js/filepuller.min.js"></script>
   <script src="../dist/morphoviewer.js"></script>
 
   <div id="threedeediv"></div>
@@ -55,13 +55,13 @@
 
 
       for(let i=0; i<files.length; i++){
-        let reader = new FileReader()
-
-        reader.onloadend = function(event) {
-          var buffer = event.target.result
-          readMorphoFile(buffer)
-        }
-        reader.readAsText( files[i] )
+        filepuller.read( files[i], true, function(error, data){
+          if (error) {
+            console.warn("ERROR" + error)
+            return
+          }
+          readMorphoFile(data)
+        })
       }
     })
 
