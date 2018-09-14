@@ -43,7 +43,7 @@ class MorphoViewer {
       let morphoPolyLine = new MorphologyPolyline( morphology, options )
       this._threeContext.addMorphologyPolyline(morphoPolyLine, options)
     } else {
-      let morpho = new MorphologyPolycylinder( morphoObj, options )
+      let morpho = new MorphologyPolycylinder( morphology, options )
       this._threeContext.addMorphologyPolyline(morpho, options)
     }
   }

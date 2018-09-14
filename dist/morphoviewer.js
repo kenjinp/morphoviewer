@@ -55722,16 +55722,11 @@
 	    }
 
 	    // adding the soma as a sphere
-	    let soma = morpho.getSoma();
-	    let somaSphere = new Mesh(
-	      new SphereGeometry( soma.getRadius(), 32, 32 ),
-	      new MeshPhongMaterial( {color: 0xff0000} )
-	    );
-
-	    let somaCenter = soma.getCenter();
-	    somaSphere.position.set(somaCenter[0], somaCenter[1], somaCenter[2]);
-	    this.add( somaSphere );
-
+	    // adding the soma as a sphere
+	    let somaData = morpho.getSoma();
+	    let somaShape = this._buildSoma(somaData);
+	    this.add( somaShape );
+	    
 	    // this is because the Allen ref is not oriented the same way as WebGL
 	    this.rotateX( Math.PI );
 	    this.rotateY( Math.PI );
@@ -55739,6 +55734,59 @@
 	    // compute the bounding box, useful for further camera targeting
 	    this.box = new Box3().setFromObject(this);
 	  }
+
+
+
+	  _buildSoma (soma) {
+	    let somaPoints = soma.getPoints();
+
+	    // case when soma is a single point
+	    if (somaPoints.length === 1) {
+	      let somaSphere = new Mesh(
+	        new SphereGeometry( soma.getRadius()*5, 32, 32 ),
+	        new MeshPhongMaterial( {color: 0xff0000, transparent: true, opacity:0.5} )
+	      );
+
+	      somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2]);
+	      return somaSphere
+
+
+	    // when soma is multiple points
+	    } else {
+	      // compute the average of the points
+	      let center = [0, 0, 0];
+	      for (let i=0; i<somaPoints.length; i++) {
+	        center[0] += somaPoints[i][0];
+	        center[1] += somaPoints[i][1];
+	        center[2] += somaPoints[i][2];
+	      }
+
+	      let centerV = new Vector3( center[0] / somaPoints.length,
+	                                       center[1] / somaPoints.length,
+	                                       center[2] / somaPoints.length);
+
+	      var geometry = new Geometry();
+
+	      for (let i=0; i<somaPoints.length; i++) {
+	        geometry.vertices.push(
+	          new Vector3(somaPoints[i][0], somaPoints[i][1], somaPoints[i][2]),
+	          new Vector3(somaPoints[(i+1)%somaPoints.length][0], somaPoints[(i+1)%somaPoints.length][1], somaPoints[(i+1)%somaPoints.length][2]),
+	          centerV
+	        );
+	        geometry.faces.push(new Face3(3 * i, 3 * i + 1, 3 * i + 2));
+
+	      }
+
+	      var somaMesh = new Mesh(geometry, new MeshBasicMaterial( {
+	        color: 0x000000,
+	        transparent: true,
+	        opacity:0.3,
+	        side: DoubleSide
+	      } ));
+	      return somaMesh
+	    }
+	  }
+
 
 
 	  /**
@@ -55802,28 +55850,23 @@
 
 	    // simple color lookup, so that every section type is shown in a different color
 	    this._sectionColors = {
-	      axon: color || 0x0000ff,
-	      basal_dendrite: color || 0x990000,
-	      apical_dendrite: color || 0x009900,
+	      axon: color || 0x1111ff,
+	      basal_dendrite: color || 0xff1111,
+	      apical_dendrite: color || 0xf442ad,
 	    };
 
+	    let sections = morpho.getArrayOfSections();
+
 	    // creating a polyline for each section
-	    for (let i=0; i<morpho.sections.length; i++) {
-	      let section = this._buildSection( morpho.sections[i] );
+	    for (let i=0; i<sections.length; i++) {
+	      let section = this._buildSection( sections[i] );
 	      this.add( section );
 	    }
 
 	    // adding the soma as a sphere
-	    let rawSoma = morpho.soma;
-	    let somaSphere = new Mesh(
-	      new SphereGeometry( rawSoma.radius, 32, 32 ),
-	      new MeshPhongMaterial( {color: 0xff0000} )
-	    );
-
-	    somaSphere.position.x = rawSoma.center[0];
-	    somaSphere.position.y = rawSoma.center[1];
-	    somaSphere.position.z = rawSoma.center[2];
-	    this.add( somaSphere );
+	    let somaData = morpho.getSoma();
+	    let somaShape = this._buildSoma(somaData);
+	    this.add( somaShape );
 
 	    // this is because the Allen ref is not oriented the same way as WebGL
 	    this.rotateX( Math.PI );
@@ -55834,36 +55877,92 @@
 	  }
 
 
+	  _buildSoma (soma) {
+	    let somaPoints = soma.getPoints();
+
+	    // case when soma is a single point
+	    if (somaPoints.length === 1) {
+	      let somaSphere = new Mesh(
+	        new SphereGeometry( soma.getRadius()*5, 32, 32 ),
+	        new MeshPhongMaterial( {color: 0xff0000, transparent: true, opacity:0.5} )
+	      );
+
+	      somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2]);
+	      return somaSphere
+
+
+	    // when soma is multiple points
+	    } else {
+	      // compute the average of the points
+	      let center = [0, 0, 0];
+	      for (let i=0; i<somaPoints.length; i++) {
+	        center[0] += somaPoints[i][0];
+	        center[1] += somaPoints[i][1];
+	        center[2] += somaPoints[i][2];
+	      }
+
+	      let centerV = new Vector3( center[0] / somaPoints.length,
+	                                       center[1] / somaPoints.length,
+	                                       center[2] / somaPoints.length);
+
+	      var geometry = new Geometry();
+
+	      for (let i=0; i<somaPoints.length; i++) {
+	        geometry.vertices.push(
+	          new Vector3(somaPoints[i][0], somaPoints[i][1], somaPoints[i][2]),
+	          new Vector3(somaPoints[(i+1)%somaPoints.length][0], somaPoints[(i+1)%somaPoints.length][1], somaPoints[(i+1)%somaPoints.length][2]),
+	          centerV
+	        );
+	        geometry.faces.push(new Face3(3 * i, 3 * i + 1, 3 * i + 2));
+
+	      }
+
+	      var somaMesh = new Mesh(geometry, new MeshBasicMaterial( {
+	        color: 0x000000,
+	        transparent: true,
+	        opacity:0.3,
+	        side: DoubleSide
+	      } ));
+	      return somaMesh
+	    }
+	  }
+
+
 	  /**
 	   * @private
 	   * Builds a single section from a raw segment description and returns it.
 	   * A section is usually composed of multiple segments
-	   * @param {Object} sectionDescription - sub part of the morpho raw object thar deals with a single section
+	   * @param {Section} sectionDescription - sub part of the morpho raw object thar deals with a single section
 	   * @return {THREE.Line} the constructed polyline
 	   */
-	  _buildSection (sectionDescription) {
+	  _buildSection (section) {
 	    let material = new MeshBasicMaterial({
-	      color: this._sectionColors[sectionDescription.typename]
+	      color: this._sectionColors[section.getTypename()]
 	    });
+
+	    let sectionPoints = section.getPoints();
+	    let sectionRadius = section.getRadiuses();
 
 	    // this will contain all the cylinders of the section
 	    let sectionMeshes = new Object3D();
 
-	    for (let i=0; i<sectionDescription.points.length - 1; i++)
+	    let startIndex = section.getParent() ? 0 : 1;
+
+	    for (let i=startIndex; i<sectionPoints.length - 1; i++)
 	    {
 	      let cyl = this._makeCylinder(
 	        new Vector3( // vStart
-	          sectionDescription.points[i].position[0],
-	          sectionDescription.points[i].position[1],
-	          sectionDescription.points[i].position[2]
+	          sectionPoints[i][0],
+	          sectionPoints[i][1],
+	          sectionPoints[i][2]
 	        ),
 	        new Vector3( // vEnd
-	          sectionDescription.points[i+1].position[0],
-	          sectionDescription.points[i+1].position[1],
-	          sectionDescription.points[i+1].position[2]
+	          sectionPoints[i+1][0],
+	          sectionPoints[i+1][1],
+	          sectionPoints[i+1][2]
 	        ),
-	        sectionDescription.points[i].radius, // rStart
-	        sectionDescription.points[i+1].radius, // rEnd
+	        sectionRadius[i], // rStart
+	        sectionRadius[i+1], // rEnd
 	        false, // openEnd
 	        material
 	      );
@@ -55872,8 +55971,9 @@
 	    }
 
 	    // adding some metadata as it can be useful for raycasting
-	    sectionMeshes.name = sectionDescription.id;
-	    sectionMeshes.userData[ "type" ] = sectionDescription.type;
+	    sectionMeshes.name = section.getId();
+	    sectionMeshes.userData[ "typevalue" ] = section.getTypevalue();
+	    sectionMeshes.userData[ "typename" ] = section.getTypename();
 
 	    return sectionMeshes
 	  }
@@ -55968,6 +56068,10 @@
 	    }
 
 
+	    /**
+	     * Define the typename
+	     * @param { }
+	     */
 	    setTypename (tn) {
 	      // TODO: use a table that makes the relation bt typevalue and typename
 	      this._typename = tn;
@@ -56033,6 +56137,11 @@
 	    }
 
 
+	    getParent () {
+	      return this._parent
+	    }
+
+
 	    /**
 	     * Make a given section the child of _this_ one.
 	     * Two verifications are perfomed before: ids must be diferent so that we are
@@ -56091,7 +56200,7 @@
 	      this._id = null;
 	      this._typename = "soma";
 	      this._typevalue = 1;
-	      this._center = null;
+	      this._points = [];
 	      this._radius = null;
 	    }
 
@@ -56115,15 +56224,14 @@
 	    }
 
 
-	    setCenter (x, y, z) {
-	      this._center = [x, y, z];
+	    addPoint (x, y, z) {
+	      this._points.push( [x, y, z]);
 	    }
 
 
-	    getCenter () {
-	      return this._center
+	    getPoints () {
+	      return this._points
 	    }
-
 
 	    setRadius (r) {
 	      this._radius = r;
@@ -56140,7 +56248,7 @@
 	     */
 	    initWithRawSection (rawSoma) {
 	      this._id = rawSoma.id;
-	      this._center = rawSoma.center;
+	      this._points = rawSoma.points.map( function(p){return p.position});
 	      this._radius = rawSoma.radius;
 
 	      return this._id
@@ -56308,7 +56416,7 @@
 	      let morphoPolyLine = new MorphologyPolyline( morphology, options );
 	      this._threeContext.addMorphologyPolyline(morphoPolyLine, options);
 	    } else {
-	      let morpho = new MorphologyPolycylinder( morphoObj, options );
+	      let morpho = new MorphologyPolycylinder( morphology, options );
 	      this._threeContext.addMorphologyPolyline(morpho, options);
 	    }
 	  }

@@ -23,7 +23,6 @@
     "babel-preset-es2015-rollup": "^3.0.0",
     "codecutils": "^0.1.3",
     "documentation": "^6.1.0",
-    "filepuller": "^0.1.0",
     "morphologycorejs": "file:../morphologycorejs",
     "pako": "^1.0.6",
     "rollup": "^0.57.0",

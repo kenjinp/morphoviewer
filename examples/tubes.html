@@ -35,7 +35,7 @@
       console.log(`The mesh ${name} was added.`)
     }
 
-
+    /*
     // optional: we load a brain model. Last param is for focusing on it
     morphoViewer.addStlToMeshCollection(
       '../data/meshes/mask_smooth_simple.stl',
@@ -45,7 +45,7 @@
         onDone: optionalCallback // what do we do when it's loaded?
       }
     )
-
+    */
 
     // manages file input
     fileInput.addEventListener('change', function(e) {
@@ -85,10 +85,10 @@
       morphoViewer.addMorphology (
         rawMorphoObj,
         {
-          focusOn: false, // do we want the camera to focus on this one when it's loaded?
+          focusOn: true, // do we want the camera to focus on this one when it's loaded?
           asPolyline: false, // with polylines of with cylinders?
           onDone: optionalCallback, // what to do when it's loaded?
-          color: Math.floor(Math.random() * 0xFFFFFF), // if not present, all neurones will have there axon in blue, basal dendrite in red and apical dendrite in green
+          //color: Math.floor(Math.random() * 0xFFFFFF), // if not present, all neurones will have there axon in blue, basal dendrite in red and apical dendrite in green
         }
       )
 
