@@ -1,4 +1,4 @@
-/**
+/*
  * @author Eberhard Graether / http://egraether.com/
  * @author Mark Lundin   / http://mark-lundin.com
  * @author Simone Manini / http://daron1337.github.io
@@ -8,7 +8,7 @@
 
 import * as THREE from "three"
 
-/**
+/*
 * ES6 adapted source from the example folder of THREEJS (because there is no proper repo for it)
 * Enables mouse control (pan, zoom, rotation)
 */

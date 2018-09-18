@@ -35,12 +35,12 @@ class ThreeContext {
     //this._scene.add( axesHelper )
 
     // adding some light
-    var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 )
-    light1.position.set( 10, 10, 10 )
+    let light1 = new THREE.DirectionalLight( 0xffffff, 0.5 )
+    light1.position.set( 1000, 1000, 1000 )
     this._scene.add( light1 )
-    //var light2 = new THREE.DirectionalLight( 0xffffff, 1.5 )
-    //light2.position.set( 0, -10, 0 )
-    //this._scene.add( light2 )
+    let light2 = new THREE.DirectionalLight( 0xffffff, 1.5 )
+    light2.position.set( -1000, -1000, -1000 )
+    this._scene.add( light2 )
 
     this._renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true} )
     this._renderer.setClearColor( 0xffffff, 0 )
@@ -212,16 +212,21 @@ class ThreeContext {
    * @param {String} name - name of the morphology in the collection
    */
   focusOnMorphology (name) {
-    let morphoBox = this._morphologyPolylineCollection[ name ].box
+    let morpho = this._morphologyPolylineCollection[ name ]
+    let morphoBox = morpho.box
     let boxSize = new THREE.Vector3()
     morphoBox.getSize(boxSize)
     let largestSide = Math.max(boxSize.x, boxSize.y, boxSize.z)
-    let boxCenter = new THREE.Vector3()
-    morphoBox.getCenter(boxCenter)
-    this._camera.position.set(boxCenter.x - largestSide*3, boxCenter.y, boxCenter.z)
-    this._camera.lookAt( boxCenter )
+    let targetPoint = morpho.getTargetPoint()
+    this._camera.position.set(targetPoint.x - largestSide, targetPoint.y, targetPoint.z)
+    this._camera.lookAt( targetPoint )
+    this._controls.target.copy( targetPoint )
 
-    this._controls.target.copy( boxCenter )
+    //let boxCenter = morphoBox.getCenter()
+    //this._camera.position.set(boxCenter.x - largestSide, boxCenter.y, boxCenter.z)
+    //this._camera.lookAt( boxCenter )
+    //this._controls.target.copy( boxCenter )
+
   }
 
 

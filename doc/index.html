@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8' />
-  <title>es6module 0.1.0 | Documentation</title>
+  <title>morphoviewer 0.1.0 | Documentation</title>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
   <link href='assets/bass.css' type='text/css' rel='stylesheet' />
   <link href='assets/style.css' type='text/css' rel='stylesheet' />
@@ -13,7 +13,7 @@
     <div class='flex'>
       <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
         <div class='py1 px2'>
-          <h3 class='mb0 no-anchor'>es6module</h3>
+          <h3 class='mb0 no-anchor'>morphoviewer</h3>
           <div class='mb1'><code>0.1.0</code></div>
           <input
             placeholder='Filter'
@@ -25,9 +25,29 @@
               
                 
                 <li><a
-                  href='#foo'
+                  href='#morphologypolycylinder'
+                  class="">
+                  MorphologyPolycylinder
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#morphologypolyline'
+                  class="">
+                  MorphologyPolyline
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#morphologyshapebase'
                   class=" toggle-sibling">
-                  Foo
+                  MorphologyShapeBase
                   <span class='icon'>▸</span>
                 </a>
                 
@@ -38,24 +58,120 @@
                       <li class='h5'><span>Instance members</span></li>
                       
                       <li><a
-                        href='#foosetanattribute'
+                        href='#morphologyshapebasegettargetpoint'
                         class='regular pre-open'>
-                        #setAnAttribute
-                      </a></li>
-                      
-                      <li><a
-                        href='#fooprintanattribute'
-                        class='regular pre-open'>
-                        #printAnAttribute
-                      </a></li>
-                      
-                      <li><a
-                        href='#foogetanattribute'
-                        class='regular pre-open'>
-                        #getAnAttribute
+                        #getTargetPoint
                       </a></li>
                       
                     </ul>
+                  
+                  
+                  
+                </div>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#morphoviewer'
+                  class=" toggle-sibling">
+                  MorphoViewer
+                  <span class='icon'>▸</span>
+                </a>
+                
+                <div class='toggle-target display-none'>
+                  
+                  
+                    <ul class='list-reset py1-ul pl1'>
+                      <li class='h5'><span>Instance members</span></li>
+                      
+                      <li><a
+                        href='#morphovieweraddmorphology'
+                        class='regular pre-open'>
+                        #addMorphology
+                      </a></li>
+                      
+                      <li><a
+                        href='#morphovieweraddstltomeshcollection'
+                        class='regular pre-open'>
+                        #addStlToMeshCollection
+                      </a></li>
+                      
+                    </ul>
+                  
+                  
+                  
+                </div>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#threecontext'
+                  class=" toggle-sibling">
+                  ThreeContext
+                  <span class='icon'>▸</span>
+                </a>
+                
+                <div class='toggle-target display-none'>
+                  
+                  
+                    <ul class='list-reset py1-ul pl1'>
+                      <li class='h5'><span>Instance members</span></li>
+                      
+                      <li><a
+                        href='#threecontextaddstltomeshcollection'
+                        class='regular pre-open'>
+                        #addStlToMeshCollection
+                      </a></li>
+                      
+                      <li><a
+                        href='#threecontextaddmorphologypolyline'
+                        class='regular pre-open'>
+                        #addMorphologyPolyline
+                      </a></li>
+                      
+                      <li><a
+                        href='#threecontextfocusonmorphology'
+                        class='regular pre-open'>
+                        #focusOnMorphology
+                      </a></li>
+                      
+                      <li><a
+                        href='#threecontextfocusonmesh'
+                        class='regular pre-open'>
+                        #focusOnMesh
+                      </a></li>
+                      
+                    </ul>
+                  
+                  
+                  
+                </div>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#tools'
+                  class=" toggle-sibling">
+                  Tools
+                  <span class='icon'>▸</span>
+                </a>
+                
+                <div class='toggle-target display-none'>
+                  
+                  <ul class='list-reset py1-ul pl1'>
+                    <li class='h5'><span>Static members</span></li>
+                    
+                      <li><a
+                        href='#toolsgetoption'
+                        class='regular pre-open'>
+                        .getOption
+                      </a></li>
+                    
+                    </ul>
+                  
                   
                   
                   
@@ -78,19 +194,30 @@
   
   <div class='clearfix'>
     
-    <h3 class='fl m0' id='foo'>
-      Foo
+    <h3 class='fl m0' id='morphologypolycylinder'>
+      MorphologyPolycylinder
     </h3>
     
     
   </div>
   
 
-  <p>Class representing a foo.</p>
+  <p>The MorphologyPolycylinder is a tubular representation of a morphology, using cylinders.
+this alternative to MorphologyPolyline is heavier on CPU and GPU so is more made when
+displaying a small number of morphologies.
+MorphologyPolycylinder extends from THREE.Object so that it's easy to integrate.
+It's constructor</p>
 
 
-  <div class='pre p1 fill-light mt0'>new Foo(anAttribute: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, aSecondAttribute: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)</div>
+  <div class='pre p1 fill-light mt0'>new MorphologyPolycylinder(morpho: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
   
+  
+    <p>
+      Extends
+      
+        <a href="#morphologyshapebase">MorphologyShapeBase</a>
+      
+    </p>
   
 
   
@@ -106,8 +233,8 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>anAttribute</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)</code>
-	    a value.
+            <span class='code bold'>morpho</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    raw object that describes a morphology (usually straight from a JSON file)
 
           </div>
           
@@ -115,9 +242,169 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>aSecondAttribute</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>
-            = <code>10</code>)</code>
-	    another value.
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</code>
+	    the option object
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='morphologypolyline'>
+      MorphologyPolyline
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>The MorphologyPolyline is the simplest 3D representation of a morphology, using
+simple polylines.
+Compared to its cylinder-based alternative (MorphologyPolycylinder), this one
+is more suitable for displaying several morphologies (up to maybe a hundred,
+depending on length and machine performance)
+MorphologyPolyline extends from THREE.Object so that it's easy to integrate.
+It's constructor</p>
+
+
+  <div class='pre p1 fill-light mt0'>new MorphologyPolyline(morpho: Morphology, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
+  
+  
+    <p>
+      Extends
+      
+        <a href="#morphologyshapebase">MorphologyShapeBase</a>
+      
+    </p>
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>morpho</span> <code class='quiet'>(Morphology)</code>
+	    raw object that describes a morphology (usually straight from a JSON file)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</code>
+	    the option object
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='morphologyshapebase'>
+      MorphologyShapeBase
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>This is the base class for <code>MorphologyPolyline</code> and <code>MorphologyPolycylinder</code>.
+It handles the common features, mainly related to soma creation</p>
+
+
+  <div class='pre p1 fill-light mt0'>new MorphologyShapeBase(morpho: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
+  
+  
+    <p>
+      Extends
+      
+        THREE.Object3D
+      
+    </p>
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>morpho</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    raw object that describes a morphology (usually straight from a JSON file)
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</code>
+	    the option object
 
           </div>
           
@@ -140,11 +427,11 @@
     <div class='py1 quiet mt1 prose-big'>Instance Members</div>
     <div class="clearfix">
   
-    <div class='border-bottom' id='foosetanattribute'>
+    <div class='border-bottom' id='morphologyshapebasegettargetpoint'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>setAnAttribute(a)</span>
+            <span class='code strong strong truncate'>getTargetPoint()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -152,10 +439,79 @@
 
   
 
-  <p>Set anAttribute.</p>
+  <p>Get the point to target when using the method lookAt. If the soma is valid,
+this will be the center of the soma. If no soma is valid, it will be the
+center of the box</p>
 
 
-  <div class='pre p1 fill-light mt0'>setAnAttribute(a: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)</div>
+  <div class='pre p1 fill-light mt0'>getTargetPoint(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+        center with the shape 
+[x: Number, y: Number, z: Number]
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+</div>
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='morphoviewer'>
+      MorphoViewer
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>The MorphoViewer class is the entry point object of the MorphoViewer project
+and is the only object the user should be dealing with.</p>
+
+
+  <div class='pre p1 fill-light mt0'>new MorphoViewer(divObj: any)</div>
   
   
 
@@ -172,8 +528,592 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>a</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>)</code>
-	    the value to give to anAttribute.
+            <span class='code bold'>divObj</span> <code class='quiet'>(any
+            = <code>null</code>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Instance Members</div>
+    <div class="clearfix">
+  
+    <div class='border-bottom' id='morphovieweraddmorphology'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>addMorphology(morphoObj, options)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Add a morphology to the collection so that it displays.</p>
+
+
+  <div class='pre p1 fill-light mt0'>addMorphology(morphoObj: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>morphoObj</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    describes the morphology of a neuron. This data comes straight from the JSON file
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</code>
+	    the optional values
+
+          </div>
+          
+          <table class='mt1 mb2 fixed-table h5 col-12'>
+            <colgroup>
+              <col width='30%' />
+              <col width='70%' />
+            </colgroup>
+            <thead>
+              <tr class='bold fill-light'>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody class='mt1'>
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.name</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  </td>
+  <td class='break-word'><span>The name to give to this morphology. Will be used as an identifier for several operations
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.asPolyline</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  </td>
+  <td class='break-word'><span>if true: shows a polyline view. false: shows a tubular view (default: true)
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.focusOn</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  </td>
+  <td class='break-word'><span>if true, the camera will focus on this added morphology. If false, the camera will not change
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.color</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  </td>
+  <td class='break-word'><span>the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.somaMode</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  </td>
+  <td class='break-word'><span>"default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
+</span></td>
+</tr>
+
+
+              
+            </tbody>
+          </table>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='morphovieweraddstltomeshcollection'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>addStlToMeshCollection(url, options)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Adds a mesh from its URL. The mesh has to encoded into the STL format</p>
+
+
+  <div class='pre p1 fill-light mt0'>addStlToMeshCollection(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>)</code>
+	    the url of the STL file
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    the options object
+
+          </div>
+          
+          <table class='mt1 mb2 fixed-table h5 col-12'>
+            <colgroup>
+              <col width='30%' />
+              <col width='70%' />
+            </colgroup>
+            <thead>
+              <tr class='bold fill-light'>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody class='mt1'>
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.name</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  </td>
+  <td class='break-word'><span>optional name of this mesh (useful for further operations such as centering the view)
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.focusOn</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  </td>
+  <td class='break-word'><span>if true, the camera will focus on this added mesh. If false, the camera will not change
+</span></td>
+</tr>
+
+
+              
+            </tbody>
+          </table>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+</div>
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='threecontext'>
+      ThreeContext
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>ThreeContext creates a WebGL context using THREEjs. It also handle mouse control.
+A MorphologyPolyline instance is added to it.</p>
+
+
+  <div class='pre p1 fill-light mt0'>new ThreeContext(divObj: DONObject)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>divObj</span> <code class='quiet'>(DONObject
+            = <code>null</code>)</code>
+	    the div object as a DOM element. Will be used to host the WebGL context
+created by THREE
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Instance Members</div>
+    <div class="clearfix">
+  
+    <div class='border-bottom' id='threecontextaddstltomeshcollection'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>addStlToMeshCollection(url, options)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Adds a mesh from its URL. The mesh has to encoded into the STL format</p>
+
+
+  <div class='pre p1 fill-light mt0'>addStlToMeshCollection(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>)</code>
+	    the url of the STL file
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    the options object
+
+          </div>
+          
+          <table class='mt1 mb2 fixed-table h5 col-12'>
+            <colgroup>
+              <col width='30%' />
+              <col width='70%' />
+            </colgroup>
+            <thead>
+              <tr class='bold fill-light'>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody class='mt1'>
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.name</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  </td>
+  <td class='break-word'><span>optional name of this mesh (useful for further operations such as centering the view)
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.focusOn</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  </td>
+  <td class='break-word'><span>if true, the camera will focus on this added mesh. If false, the camera will not change
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.onDone</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a></code>
+  </td>
+  <td class='break-word'><span>callback to be called when the mesh is added. Called with the name of the mesh in argument
+</span></td>
+</tr>
+
+
+              
+            </tbody>
+          </table>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='threecontextaddmorphologypolyline'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>addMorphologyPolyline(morphoPolyline, options)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Add a MorphoPolyline object (which are ThreeJS Object3D) into the scene of this
+ThreeContext.</p>
+
+
+  <div class='pre p1 fill-light mt0'>addMorphologyPolyline(morphoPolyline: MorphoPolyline, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>morphoPolyline</span> <code class='quiet'>(MorphoPolyline)</code>
+	    a MorphoPolyline instance
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    the option object
+
+          </div>
+          
+          <table class='mt1 mb2 fixed-table h5 col-12'>
+            <colgroup>
+              <col width='30%' />
+              <col width='70%' />
+            </colgroup>
+            <thead>
+              <tr class='bold fill-light'>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody class='mt1'>
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.name</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  </td>
+  <td class='break-word'><span>the identifier to give to the MorphoPolyline instance within a local collection
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.focusOn</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  </td>
+  <td class='break-word'><span>if true, the camera will focus on this added morphology. If false, the camera will not change
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.onDone</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a></code>
+  </td>
+  <td class='break-word'><span>callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
+</span></td>
+</tr>
+
+
+              
+            </tbody>
+          </table>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='threecontextfocusonmorphology'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>focusOnMorphology(name)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Make the camera focus on a specific morphology</p>
+
+
+  <div class='pre p1 fill-light mt0'>focusOnMorphology(name: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>name</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>)</code>
+	    name of the morphology in the collection
 
           </div>
           
@@ -200,11 +1140,11 @@
       </div>
     </div>
   
-    <div class='border-bottom' id='fooprintanattribute'>
+    <div class='border-bottom' id='threecontextfocusonmesh'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>printAnAttribute()</span>
+            <span class='code strong strong truncate'>focusOnMesh(name)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -212,77 +1152,38 @@
 
   
 
-  <p>Display anAttribute.</p>
+  <p>Focus on a mesh, given its name</p>
 
 
-  <div class='pre p1 fill-light mt0'>printAnAttribute()</div>
-  
-  
-
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>focusOnMesh(name: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</div>
   
   
 
   
-
+  
+  
+  
+  
   
 
   
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>name</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    name of the mesh to focus on
 
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
+          </div>
+          
+        </div>
+      
     </div>
   
-    <div class='border-bottom' id='foogetanattribute'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>getAnAttribute()</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
 
   
 
-  
-
-  <div class='pre p1 fill-light mt0'>getAnAttribute(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-
-  
-    
-      <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code>:
-        The anAttribute value.
-
-      
-    
   
 
   
@@ -300,6 +1201,143 @@
     </div>
   
 </div>
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='tools'>
+      Tools
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Some handy static functions to do stuff that are not strictly related to the business of the project</p>
+
+
+  <div class='pre p1 fill-light mt0'>new Tools()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Static Members</div>
+    <div class="clearfix">
+  
+    <div class='border-bottom' id='toolsgetoption'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getOption(optionObj, optionName, optionDefaultValue)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Handy function to deal with option object we pass in argument of function.
+Allows the return of a default value if the <code>optionName</code> is not available in
+the <code>optionObj</code></p>
+
+
+  <div class='pre p1 fill-light mt0'>getOption(optionObj: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>, optionName: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>, optionDefaultValue: any)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>optionObj</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    the object that contain the options
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>optionName</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>)</code>
+	    the name of the option desired, attribute of 
+<code>optionObj</code>
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>optionDefaultValue</span> <code class='quiet'>(any)</code>
+	    default values to be returned in case 
+<code>optionName</code>
+ is not an attribute of 
+<code>optionObj</code>
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+</div>
+
+  
 
   
 

@@ -2,42 +2,210 @@
 
 ### Table of Contents
 
--   [Foo][1]
-    -   [setAnAttribute][2]
-    -   [printAnAttribute][3]
-    -   [getAnAttribute][4]
+-   [MorphologyPolycylinder][1]
+-   [MorphologyPolyline][2]
+-   [MorphologyShapeBase][3]
+    -   [getTargetPoint][4]
+-   [MorphoViewer][5]
+    -   [addMorphology][6]
+    -   [addStlToMeshCollection][7]
+-   [ThreeContext][8]
+    -   [addStlToMeshCollection][9]
+    -   [addMorphologyPolyline][10]
+    -   [focusOnMorphology][11]
+    -   [focusOnMesh][12]
+-   [Tools][13]
+    -   [getOption][14]
 
-## Foo
+## MorphologyPolycylinder
 
-Class representing a foo.
+**Extends MorphologyShapeBase**
+
+The MorphologyPolycylinder is a tubular representation of a morphology, using cylinders.
+this alternative to MorphologyPolyline is heavier on CPU and GPU so is more made when
+displaying a small number of morphologies.
+MorphologyPolycylinder extends from THREE.Object so that it's easy to integrate.
+It's constructor
 
 **Parameters**
 
--   `anAttribute` **[number][5]** a value.
--   `aSecondAttribute` **[number][5]** another value. (optional, default `10`)
+-   `morpho` **[Object][15]** raw object that describes a morphology (usually straight from a JSON file)
+-   `options` **[object][15]** the option object
 
-### setAnAttribute
+## MorphologyPolyline
 
-Set anAttribute.
+**Extends MorphologyShapeBase**
+
+The MorphologyPolyline is the simplest 3D representation of a morphology, using
+simple polylines.
+Compared to its cylinder-based alternative (MorphologyPolycylinder), this one
+is more suitable for displaying several morphologies (up to maybe a hundred,
+depending on length and machine performance)
+MorphologyPolyline extends from THREE.Object so that it's easy to integrate.
+It's constructor
 
 **Parameters**
 
--   `a` **[number][5]** the value to give to anAttribute.
+-   `morpho` **Morphology** raw object that describes a morphology (usually straight from a JSON file)
+-   `options` **[object][15]** the option object
 
-### printAnAttribute
+## MorphologyShapeBase
 
-Display anAttribute.
+**Extends THREE.Object3D**
 
-### getAnAttribute
+This is the base class for `MorphologyPolyline` and `MorphologyPolycylinder`.
+It handles the common features, mainly related to soma creation
 
-Returns **[number][5]** The anAttribute value.
+**Parameters**
 
-[1]: #foo
+-   `morpho` **[Object][15]** raw object that describes a morphology (usually straight from a JSON file)
+-   `options` **[object][15]** the option object
 
-[2]: #setanattribute
+### getTargetPoint
 
-[3]: #printanattribute
+Get the point to target when using the method lookAt. If the soma is valid,
+this will be the center of the soma. If no soma is valid, it will be the
+center of the box
 
-[4]: #getanattribute
+Returns **[Array][16]** center with the shape [x: Number, y: Number, z: Number]
 
-[5]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+## MorphoViewer
+
+The MorphoViewer class is the entry point object of the MorphoViewer project
+and is the only object the user should be dealing with.
+
+**Parameters**
+
+-   `divObj`   (optional, default `null`)
+
+### addMorphology
+
+Add a morphology to the collection so that it displays.
+
+**Parameters**
+
+-   `morphoObj` **[Object][15]** describes the morphology of a neuron. This data comes straight from the JSON file
+-   `options` **[object][15]** the optional values
+    -   `options.name` **[String][17]** The name to give to this morphology. Will be used as an identifier for several operations
+    -   `options.asPolyline` **[Boolean][18]** if true: shows a polyline view. false: shows a tubular view (default: true)
+    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added morphology. If false, the camera will not change
+    -   `options.color` **[Number][19]** the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+    -   `options.somaMode` **[String][17]** "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
+
+### addStlToMeshCollection
+
+Adds a mesh from its URL. The mesh has to encoded into the STL format
+
+**Parameters**
+
+-   `url` **[String][17]** the url of the STL file
+-   `options` **[Object][15]** the options object
+    -   `options.name` **[String][17]** optional name of this mesh (useful for further operations such as centering the view)
+    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added mesh. If false, the camera will not change
+
+## ThreeContext
+
+ThreeContext creates a WebGL context using THREEjs. It also handle mouse control.
+A MorphologyPolyline instance is added to it.
+
+**Parameters**
+
+-   `divObj` **DONObject** the div object as a DOM element. Will be used to host the WebGL context
+    created by THREE (optional, default `null`)
+
+### addStlToMeshCollection
+
+Adds a mesh from its URL. The mesh has to encoded into the STL format
+
+**Parameters**
+
+-   `url` **[String][17]** the url of the STL file
+-   `options` **[Object][15]** the options object
+    -   `options.name` **[String][17]** optional name of this mesh (useful for further operations such as centering the view)
+    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added mesh. If false, the camera will not change
+    -   `options.onDone` **[Function][20]** callback to be called when the mesh is added. Called with the name of the mesh in argument
+
+### addMorphologyPolyline
+
+Add a MorphoPolyline object (which are ThreeJS Object3D) into the scene of this
+ThreeContext.
+
+**Parameters**
+
+-   `morphoPolyline` **MorphoPolyline** a MorphoPolyline instance
+-   `options` **[Object][15]** the option object
+    -   `options.name` **[String][17]** the identifier to give to the MorphoPolyline instance within a local collection
+    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added morphology. If false, the camera will not change
+    -   `options.onDone` **[Function][20]** callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
+
+### focusOnMorphology
+
+Make the camera focus on a specific morphology
+
+**Parameters**
+
+-   `name` **[String][17]** name of the morphology in the collection
+
+### focusOnMesh
+
+Focus on a mesh, given its name
+
+**Parameters**
+
+-   `name` **[string][17]** name of the mesh to focus on
+
+## Tools
+
+Some handy static functions to do stuff that are not strictly related to the business of the project
+
+### getOption
+
+Handy function to deal with option object we pass in argument of function.
+Allows the return of a default value if the `optionName` is not available in
+the `optionObj`
+
+**Parameters**
+
+-   `optionObj` **[Object][15]** the object that contain the options
+-   `optionName` **[String][17]** the name of the option desired, attribute of `optionObj`
+-   `optionDefaultValue` **any** default values to be returned in case `optionName` is not an attribute of `optionObj`
+
+[1]: #morphologypolycylinder
+
+[2]: #morphologypolyline
+
+[3]: #morphologyshapebase
+
+[4]: #gettargetpoint
+
+[5]: #morphoviewer
+
+[6]: #addmorphology
+
+[7]: #addstltomeshcollection
+
+[8]: #threecontext
+
+[9]: #addstltomeshcollection-1
+
+[10]: #addmorphologypolyline
+
+[11]: #focusonmorphology
+
+[12]: #focusonmesh
+
+[13]: #tools
+
+[14]: #getoption
+
+[15]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+
+[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[17]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+
+[18]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[19]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[20]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function

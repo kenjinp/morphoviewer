@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { Tools } from './Tools.js'
+import { MorphologyShapeBase } from './MorphologyShapeBase.js'
 
 
 /**
@@ -9,7 +10,7 @@ import { Tools } from './Tools.js'
  * MorphologyPolycylinder extends from THREE.Object so that it's easy to integrate.
  * It's constructor
  */
-class MorphologyPolycylinder extends THREE.Object3D {
+class MorphologyPolycylinder extends MorphologyShapeBase {
 
   /**
    * @constructor
@@ -19,19 +20,9 @@ class MorphologyPolycylinder extends THREE.Object3D {
    * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
    */
   constructor (morpho, options) {
-    super()
+    super(morpho, options)
 
-    // fetch the optional color
-    let color = Tools.getOption(options, 'color', null)
-
-    // simple color lookup, so that every section type is shown in a different color
-    this._sectionColors = {
-      axon: color || 0x1111ff,
-      basal_dendrite: color || 0xff1111,
-      apical_dendrite: color || 0xf442ad,
-    }
-
-    let sections = morpho.getArrayOfSections()
+    let sections = this._morpho.getArrayOfSections()
 
     // creating a polyline for each section
     for (let i=0; i<sections.length; i++) {
@@ -40,8 +31,8 @@ class MorphologyPolycylinder extends THREE.Object3D {
     }
 
     // adding the soma as a sphere
-    let somaData = morpho.getSoma()
-    let somaShape = this._buildSoma(somaData)
+    let somaData = this._morpho.getSoma()
+    let somaShape = this._buildSoma(options)
     this.add( somaShape )
 
     // this is because the Allen ref is not oriented the same way as WebGL
@@ -50,57 +41,7 @@ class MorphologyPolycylinder extends THREE.Object3D {
 
     // compute the bounding box, useful for further camera targeting
     this.box = new THREE.Box3().setFromObject(this)
-  }
 
-
-  _buildSoma (soma) {
-    let somaPoints = soma.getPoints()
-
-    // case when soma is a single point
-    if (somaPoints.length === 1) {
-      let somaSphere = new THREE.Mesh(
-        new THREE.SphereGeometry( soma.getRadius()*5, 32, 32 ),
-        new THREE.MeshPhongMaterial( {color: 0xff0000, transparent: true, opacity:0.5} )
-      )
-
-      somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2])
-      return somaSphere
-
-
-    // when soma is multiple points
-    } else {
-      // compute the average of the points
-      let center = [0, 0, 0]
-      for (let i=0; i<somaPoints.length; i++) {
-        center[0] += somaPoints[i][0]
-        center[1] += somaPoints[i][1]
-        center[2] += somaPoints[i][2]
-      }
-
-      let centerV = new THREE.Vector3( center[0] / somaPoints.length,
-                                       center[1] / somaPoints.length,
-                                       center[2] / somaPoints.length)
-
-      var geometry = new THREE.Geometry();
-
-      for (let i=0; i<somaPoints.length; i++) {
-        geometry.vertices.push(
-          new THREE.Vector3(somaPoints[i][0], somaPoints[i][1], somaPoints[i][2]),
-          new THREE.Vector3(somaPoints[(i+1)%somaPoints.length][0], somaPoints[(i+1)%somaPoints.length][1], somaPoints[(i+1)%somaPoints.length][2]),
-          centerV
-        );
-        geometry.faces.push(new THREE.Face3(3 * i, 3 * i + 1, 3 * i + 2))
-
-      }
-
-      var somaMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial( {
-        color: 0x000000,
-        transparent: true,
-        opacity:0.3,
-        side: THREE.DoubleSide
-      } ))
-      return somaMesh
-    }
   }
 
 
@@ -112,7 +53,7 @@ class MorphologyPolycylinder extends THREE.Object3D {
    * @return {THREE.Line} the constructed polyline
    */
   _buildSection (section) {
-    let material = new THREE.MeshBasicMaterial({
+    let material = new THREE.MeshPhongMaterial({
       color: this._sectionColors[section.getTypename()]
     })
 
@@ -188,6 +129,7 @@ class MorphologyPolycylinder extends THREE.Object3D {
     mesh.position.z = position.z
     return mesh
   }
+
 
 }
 

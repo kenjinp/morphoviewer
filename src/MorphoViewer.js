@@ -30,6 +30,7 @@ class MorphoViewer {
    * @param {Boolean} options.asPolyline - if true: shows a polyline view. false: shows a tubular view (default: true)
    * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
    * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+   * @param {String} options.somaMode - "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
    */
   addMorphology (morphoObj, options) {
     // create a mirphology object

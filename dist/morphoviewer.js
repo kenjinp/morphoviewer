@@ -55478,12 +55478,12 @@
 	    //this._scene.add( axesHelper )
 
 	    // adding some light
-	    var light1 = new DirectionalLight( 0xffffff, 0.5 );
-	    light1.position.set( 10, 10, 10 );
+	    let light1 = new DirectionalLight( 0xffffff, 0.5 );
+	    light1.position.set( 1000, 1000, 1000 );
 	    this._scene.add( light1 );
-	    //var light2 = new THREE.DirectionalLight( 0xffffff, 1.5 )
-	    //light2.position.set( 0, -10, 0 )
-	    //this._scene.add( light2 )
+	    let light2 = new DirectionalLight( 0xffffff, 1.5 );
+	    light2.position.set( -1000, -1000, -1000 );
+	    this._scene.add( light2 );
 
 	    this._renderer = new WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true} );
 	    this._renderer.setClearColor( 0xffffff, 0 );
@@ -55654,16 +55654,21 @@
 	   * @param {String} name - name of the morphology in the collection
 	   */
 	  focusOnMorphology (name) {
-	    let morphoBox = this._morphologyPolylineCollection[ name ].box;
+	    let morpho = this._morphologyPolylineCollection[ name ];
+	    let morphoBox = morpho.box;
 	    let boxSize = new Vector3();
 	    morphoBox.getSize(boxSize);
 	    let largestSide = Math.max(boxSize.x, boxSize.y, boxSize.z);
-	    let boxCenter = new Vector3();
-	    morphoBox.getCenter(boxCenter);
-	    this._camera.position.set(boxCenter.x - largestSide*3, boxCenter.y, boxCenter.z);
-	    this._camera.lookAt( boxCenter );
+	    let targetPoint = morpho.getTargetPoint();
+	    this._camera.position.set(targetPoint.x - largestSide, targetPoint.y, targetPoint.z);
+	    this._camera.lookAt( targetPoint );
+	    this._controls.target.copy( targetPoint );
 
-	    this._controls.target.copy( boxCenter );
+	    //let boxCenter = morphoBox.getCenter()
+	    //this._camera.position.set(boxCenter.x - largestSide, boxCenter.y, boxCenter.z)
+	    //this._camera.lookAt( boxCenter )
+	    //this._controls.target.copy( boxCenter )
+
 	  }
 
 
@@ -55683,88 +55688,1347 @@
 	}
 
 	/**
-	 * The MorphologyPolyline is the simplest 3D representation of a morphology, using
-	 * simple polylines.
-	 * Compared to its cylinder-based alternative (MorphologyPolycylinder), this one
-	 * is more suitable for displaying several morphologies (up to maybe a hundred,
-	 * depending on length and machine performance)
-	 * MorphologyPolyline extends from THREE.Object so that it's easy to integrate.
-	 * It's constructor
+	* @author Mugen87 / https://github.com/Mugen87
+	*
+	* Ported from: https://github.com/maurizzzio/quickhull3d/ by Mauricio Poppe (https://github.com/maurizzzio)
+	*
+	*/
+
+
+	var Visible = 0;
+	var Deleted = 1;
+
+	function QuickHull() {
+
+	  this.tolerance = - 1;
+
+	  this.faces = []; // the generated faces of the convex hull
+	  this.newFaces = []; // this array holds the faces that are generated within a single iteration
+
+	  // the vertex lists work as follows:
+	  //
+	  // let 'a' and 'b' be 'Face' instances
+	  // let 'v' be points wrapped as instance of 'Vertex'
+	  //
+	  //     [v, v, ..., v, v, v, ...]
+	  //      ^             ^
+	  //      |             |
+	  //  a.outside     b.outside
+	  //
+	  this.assigned = new VertexList();
+	  this.unassigned = new VertexList();
+
+	  this.vertices = [];   // vertices of the hull (internal representation of given geometry data)
+
+	}
+
+	Object.assign( QuickHull.prototype, {
+
+	  setFromPoints: function ( points ) {
+
+	    if ( Array.isArray( points ) !== true ) {
+
+	      console.error( 'THREE.QuickHull: Points parameter is not an array.' );
+
+	    }
+
+	    if ( points.length < 4 ) {
+
+	      console.error( 'THREE.QuickHull: The algorithm needs at least four points.' );
+
+	    }
+
+	    this.makeEmpty();
+
+	    for ( var i = 0, l = points.length; i < l; i ++ ) {
+
+	      this.vertices.push( new VertexNode( points[ i ] ) );
+
+	    }
+
+	    this.compute();
+
+	    return this;
+
+	  },
+
+	  setFromObject: function ( object ) {
+
+	    var points = [];
+
+	    object.updateMatrixWorld( true );
+
+	    object.traverse( function ( node ) {
+
+	      var i, l, point;
+
+	      var geometry = node.geometry;
+
+	      if ( geometry !== undefined ) {
+
+	        if ( geometry.isGeometry ) {
+
+	          var vertices = geometry.vertices;
+
+	          for ( i = 0, l = vertices.length; i < l; i ++ ) {
+
+	            point = vertices[ i ].clone();
+	            point.applyMatrix4( node.matrixWorld );
+
+	            points.push( point );
+
+	          }
+
+	        } else if ( geometry.isBufferGeometry ) {
+
+	          var attribute = geometry.attributes.position;
+
+	          if ( attribute !== undefined ) {
+
+	            for ( i = 0, l = attribute.count; i < l; i ++ ) {
+
+	              point = new Vector3();
+
+	              point.fromBufferAttribute( attribute, i ).applyMatrix4( node.matrixWorld );
+
+	              points.push( point );
+
+	            }
+
+	          }
+
+	        }
+
+	      }
+
+	    } );
+
+	    return this.setFromPoints( points );
+
+	  },
+
+	  makeEmpty: function () {
+
+	    this.faces = [];
+	    this.vertices = [];
+
+	    return this;
+
+	  },
+
+	  // Adds a vertex to the 'assigned' list of vertices and assigns it to the given face
+
+	  addVertexToFace: function ( vertex, face ) {
+
+	    vertex.face = face;
+
+	    if ( face.outside === null ) {
+
+	      this.assigned.append( vertex );
+
+	    } else {
+
+	      this.assigned.insertBefore( face.outside, vertex );
+
+	    }
+
+	    face.outside = vertex;
+
+	    return this;
+
+	  },
+
+	  // Removes a vertex from the 'assigned' list of vertices and from the given face
+
+	  removeVertexFromFace: function ( vertex, face ) {
+
+	    if ( vertex === face.outside ) {
+
+	      // fix face.outside link
+
+	      if ( vertex.next !== null && vertex.next.face === face ) {
+
+	        // face has at least 2 outside vertices, move the 'outside' reference
+
+	        face.outside = vertex.next;
+
+	      } else {
+
+	        // vertex was the only outside vertex that face had
+
+	        face.outside = null;
+
+	      }
+
+	    }
+
+	    this.assigned.remove( vertex );
+
+	    return this;
+
+	  },
+
+	  // Removes all the visible vertices that a given face is able to see which are stored in the 'assigned' vertext list
+
+	  removeAllVerticesFromFace: function ( face ) {
+
+	    if ( face.outside !== null ) {
+
+	      // reference to the first and last vertex of this face
+
+	      var start = face.outside;
+	      var end = face.outside;
+
+	      while ( end.next !== null && end.next.face === face ) {
+
+	        end = end.next;
+
+	      }
+
+	      this.assigned.removeSubList( start, end );
+
+	      // fix references
+
+	      start.prev = end.next = null;
+	      face.outside = null;
+
+	      return start;
+
+	    }
+
+	  },
+
+	  // Removes all the visible vertices that 'face' is able to see
+
+	  deleteFaceVertices: function ( face, absorbingFace ) {
+
+	    var faceVertices = this.removeAllVerticesFromFace( face );
+
+	    if ( faceVertices !== undefined ) {
+
+	      if ( absorbingFace === undefined ) {
+
+	        // mark the vertices to be reassigned to some other face
+
+	        this.unassigned.appendChain( faceVertices );
+
+
+	      } else {
+
+	        // if there's an absorbing face try to assign as many vertices as possible to it
+
+	        var vertex = faceVertices;
+
+	        do {
+
+	          // we need to buffer the subsequent vertex at this point because the 'vertex.next' reference
+	          // will be changed by upcoming method calls
+
+	          var nextVertex = vertex.next;
+
+	          var distance = absorbingFace.distanceToPoint( vertex.point );
+
+	          // check if 'vertex' is able to see 'absorbingFace'
+
+	          if ( distance > this.tolerance ) {
+
+	            this.addVertexToFace( vertex, absorbingFace );
+
+	          } else {
+
+	            this.unassigned.append( vertex );
+
+	          }
+
+	          // now assign next vertex
+
+	          vertex = nextVertex;
+
+	        } while ( vertex !== null );
+
+	      }
+
+	    }
+
+	    return this;
+
+	  },
+
+	  // Reassigns as many vertices as possible from the unassigned list to the new faces
+
+	  resolveUnassignedPoints: function ( newFaces ) {
+
+	    if ( this.unassigned.isEmpty() === false ) {
+
+	      var vertex = this.unassigned.first();
+
+	      do {
+
+	        // buffer 'next' reference, see .deleteFaceVertices()
+
+	        var nextVertex = vertex.next;
+
+	        var maxDistance = this.tolerance;
+
+	        var maxFace = null;
+
+	        for ( var i = 0; i < newFaces.length; i ++ ) {
+
+	          var face = newFaces[ i ];
+
+	          if ( face.mark === Visible ) {
+
+	            var distance = face.distanceToPoint( vertex.point );
+
+	            if ( distance > maxDistance ) {
+
+	              maxDistance = distance;
+	              maxFace = face;
+
+	            }
+
+	            if ( maxDistance > 1000 * this.tolerance ) break;
+
+	          }
+
+	        }
+
+	        // 'maxFace' can be null e.g. if there are identical vertices
+
+	        if ( maxFace !== null ) {
+
+	          this.addVertexToFace( vertex, maxFace );
+
+	        }
+
+	        vertex = nextVertex;
+
+	      } while ( vertex !== null );
+
+	    }
+
+	    return this;
+
+	  },
+
+	  // Computes the extremes of a simplex which will be the initial hull
+
+	  computeExtremes: function () {
+
+	    var min = new Vector3();
+	    var max = new Vector3();
+
+	    var minVertices = [];
+	    var maxVertices = [];
+
+	    var i, l, j;
+
+	    // initially assume that the first vertex is the min/max
+
+	    for ( i = 0; i < 3; i ++ ) {
+
+	      minVertices[ i ] = maxVertices[ i ] = this.vertices[ 0 ];
+
+	    }
+
+	    min.copy( this.vertices[ 0 ].point );
+	    max.copy( this.vertices[ 0 ].point );
+
+	    // compute the min/max vertex on all six directions
+
+	    for ( i = 0, l = this.vertices.length; i < l; i ++ ) {
+
+	      var vertex = this.vertices[ i ];
+	      var point = vertex.point;
+
+	      // update the min coordinates
+
+	      for ( j = 0; j < 3; j ++ ) {
+
+	        if ( point.getComponent( j ) < min.getComponent( j ) ) {
+
+	          min.setComponent( j, point.getComponent( j ) );
+	          minVertices[ j ] = vertex;
+
+	        }
+
+	      }
+
+	      // update the max coordinates
+
+	      for ( j = 0; j < 3; j ++ ) {
+
+	        if ( point.getComponent( j ) > max.getComponent( j ) ) {
+
+	          max.setComponent( j, point.getComponent( j ) );
+	          maxVertices[ j ] = vertex;
+
+	        }
+
+	      }
+
+	    }
+
+	    // use min/max vectors to compute an optimal epsilon
+
+	    this.tolerance = 3 * Number.EPSILON * (
+	      Math.max( Math.abs( min.x ), Math.abs( max.x ) ) +
+	      Math.max( Math.abs( min.y ), Math.abs( max.y ) ) +
+	      Math.max( Math.abs( min.z ), Math.abs( max.z ) )
+	    );
+
+	    return { min: minVertices, max: maxVertices };
+
+	  },
+
+	  // Computes the initial simplex assigning to its faces all the points
+	  // that are candidates to form part of the hull
+
+	  computeInitialHull: function () {
+
+	    var line3, plane, closestPoint;
+
+	    return function computeInitialHull() {
+
+	      if ( line3 === undefined ) {
+
+	        line3 = new Line3();
+	        plane = new Plane();
+	        closestPoint = new Vector3();
+
+	      }
+
+	      var vertex, vertices = this.vertices;
+	      var extremes = this.computeExtremes();
+	      var min = extremes.min;
+	      var max = extremes.max;
+
+	      var v0, v1, v2, v3;
+	      var i, l, j;
+
+	      // 1. Find the two vertices 'v0' and 'v1' with the greatest 1d separation
+	      // (max.x - min.x)
+	      // (max.y - min.y)
+	      // (max.z - min.z)
+
+	      var distance, maxDistance = 0;
+	      var index = 0;
+
+	      for ( i = 0; i < 3; i ++ ) {
+
+	        distance = max[ i ].point.getComponent( i ) - min[ i ].point.getComponent( i );
+
+	        if ( distance > maxDistance ) {
+
+	          maxDistance = distance;
+	          index = i;
+
+	        }
+
+	      }
+
+	      v0 = min[ index ];
+	      v1 = max[ index ];
+
+	      // 2. The next vertex 'v2' is the one farthest to the line formed by 'v0' and 'v1'
+
+	      maxDistance = 0;
+	      line3.set( v0.point, v1.point );
+
+	      for ( i = 0, l = this.vertices.length; i < l; i ++ ) {
+
+	        vertex = vertices[ i ];
+
+	        if ( vertex !== v0 && vertex !== v1 ) {
+
+	          line3.closestPointToPoint( vertex.point, true, closestPoint );
+
+	          distance = closestPoint.distanceToSquared( vertex.point );
+
+	          if ( distance > maxDistance ) {
+
+	            maxDistance = distance;
+	            v2 = vertex;
+
+	          }
+
+	        }
+
+	      }
+
+	      // 3. The next vertex 'v3' is the one farthest to the plane 'v0', 'v1', 'v2'
+
+	      maxDistance = - 1;
+	      plane.setFromCoplanarPoints( v0.point, v1.point, v2.point );
+
+	      for ( i = 0, l = this.vertices.length; i < l; i ++ ) {
+
+	        vertex = vertices[ i ];
+
+	        if ( vertex !== v0 && vertex !== v1 && vertex !== v2 ) {
+
+	          distance = Math.abs( plane.distanceToPoint( vertex.point ) );
+
+	          if ( distance > maxDistance ) {
+
+	            maxDistance = distance;
+	            v3 = vertex;
+
+	          }
+
+	        }
+
+	      }
+
+	      var faces = [];
+
+	      if ( plane.distanceToPoint( v3.point ) < 0 ) {
+
+	        // the face is not able to see the point so 'plane.normal' is pointing outside the tetrahedron
+
+	        faces.push(
+	          Face.create( v0, v1, v2 ),
+	          Face.create( v3, v1, v0 ),
+	          Face.create( v3, v2, v1 ),
+	          Face.create( v3, v0, v2 )
+	        );
+
+	        // set the twin edge
+
+	        for ( i = 0; i < 3; i ++ ) {
+
+	          j = ( i + 1 ) % 3;
+
+	          // join face[ i ] i > 0, with the first face
+
+	          faces[ i + 1 ].getEdge( 2 ).setTwin( faces[ 0 ].getEdge( j ) );
+
+	          // join face[ i ] with face[ i + 1 ], 1 <= i <= 3
+
+	          faces[ i + 1 ].getEdge( 1 ).setTwin( faces[ j + 1 ].getEdge( 0 ) );
+
+	        }
+
+	      } else {
+
+	        // the face is able to see the point so 'plane.normal' is pointing inside the tetrahedron
+
+	        faces.push(
+	          Face.create( v0, v2, v1 ),
+	          Face.create( v3, v0, v1 ),
+	          Face.create( v3, v1, v2 ),
+	          Face.create( v3, v2, v0 )
+	        );
+
+	        // set the twin edge
+
+	        for ( i = 0; i < 3; i ++ ) {
+
+	          j = ( i + 1 ) % 3;
+
+	          // join face[ i ] i > 0, with the first face
+
+	          faces[ i + 1 ].getEdge( 2 ).setTwin( faces[ 0 ].getEdge( ( 3 - i ) % 3 ) );
+
+	          // join face[ i ] with face[ i + 1 ]
+
+	          faces[ i + 1 ].getEdge( 0 ).setTwin( faces[ j + 1 ].getEdge( 1 ) );
+
+	        }
+
+	      }
+
+	      // the initial hull is the tetrahedron
+
+	      for ( i = 0; i < 4; i ++ ) {
+
+	        this.faces.push( faces[ i ] );
+
+	      }
+
+	      // initial assignment of vertices to the faces of the tetrahedron
+
+	      for ( i = 0, l = vertices.length; i < l; i ++ ) {
+
+	        vertex = vertices[ i ];
+
+	        if ( vertex !== v0 && vertex !== v1 && vertex !== v2 && vertex !== v3 ) {
+
+	          maxDistance = this.tolerance;
+	          var maxFace = null;
+
+	          for ( j = 0; j < 4; j ++ ) {
+
+	            distance = this.faces[ j ].distanceToPoint( vertex.point );
+
+	            if ( distance > maxDistance ) {
+
+	              maxDistance = distance;
+	              maxFace = this.faces[ j ];
+
+	            }
+
+	          }
+
+	          if ( maxFace !== null ) {
+
+	            this.addVertexToFace( vertex, maxFace );
+
+	          }
+
+	        }
+
+	      }
+
+	      return this;
+
+	    };
+
+	  }(),
+
+	  // Removes inactive faces
+
+	  reindexFaces: function () {
+
+	    var activeFaces = [];
+
+	    for ( var i = 0; i < this.faces.length; i ++ ) {
+
+	      var face = this.faces[ i ];
+
+	      if ( face.mark === Visible ) {
+
+	        activeFaces.push( face );
+
+	      }
+
+	    }
+
+	    this.faces = activeFaces;
+
+	    return this;
+
+	  },
+
+	  // Finds the next vertex to create faces with the current hull
+
+	  nextVertexToAdd: function () {
+
+	    // if the 'assigned' list of vertices is empty, no vertices are left. return with 'undefined'
+
+	    if ( this.assigned.isEmpty() === false ) {
+
+	      var eyeVertex, maxDistance = 0;
+
+	      // grap the first available face and start with the first visible vertex of that face
+
+	      var eyeFace = this.assigned.first().face;
+	      var vertex = eyeFace.outside;
+
+	      // now calculate the farthest vertex that face can see
+
+	      do {
+
+	        var distance = eyeFace.distanceToPoint( vertex.point );
+
+	        if ( distance > maxDistance ) {
+
+	          maxDistance = distance;
+	          eyeVertex = vertex;
+
+	        }
+
+	        vertex = vertex.next;
+
+	      } while ( vertex !== null && vertex.face === eyeFace );
+
+	      return eyeVertex;
+
+	    }
+
+	  },
+
+	  // Computes a chain of half edges in CCW order called the 'horizon'.
+	  // For an edge to be part of the horizon it must join a face that can see
+	  // 'eyePoint' and a face that cannot see 'eyePoint'.
+
+	  computeHorizon: function ( eyePoint, crossEdge, face, horizon ) {
+
+	    // moves face's vertices to the 'unassigned' vertex list
+
+	    this.deleteFaceVertices( face );
+
+	    face.mark = Deleted;
+
+	    var edge;
+
+	    if ( crossEdge === null ) {
+
+	      edge = crossEdge = face.getEdge( 0 );
+
+	    } else {
+
+	      // start from the next edge since 'crossEdge' was already analyzed
+	      // (actually 'crossEdge.twin' was the edge who called this method recursively)
+
+	      edge = crossEdge.next;
+
+	    }
+
+	    do {
+
+	      var twinEdge = edge.twin;
+	      var oppositeFace = twinEdge.face;
+
+	      if ( oppositeFace.mark === Visible ) {
+
+	        if ( oppositeFace.distanceToPoint( eyePoint ) > this.tolerance ) {
+
+	          // the opposite face can see the vertex, so proceed with next edge
+
+	          this.computeHorizon( eyePoint, twinEdge, oppositeFace, horizon );
+
+	        } else {
+
+	          // the opposite face can't see the vertex, so this edge is part of the horizon
+
+	          horizon.push( edge );
+
+	        }
+
+	      }
+
+	      edge = edge.next;
+
+	    } while ( edge !== crossEdge );
+
+	    return this;
+
+	  },
+
+	  // Creates a face with the vertices 'eyeVertex.point', 'horizonEdge.tail' and 'horizonEdge.head' in CCW order
+
+	  addAdjoiningFace: function ( eyeVertex, horizonEdge ) {
+
+	    // all the half edges are created in ccw order thus the face is always pointing outside the hull
+
+	    var face = Face.create( eyeVertex, horizonEdge.tail(), horizonEdge.head() );
+
+	    this.faces.push( face );
+
+	    // join face.getEdge( - 1 ) with the horizon's opposite edge face.getEdge( - 1 ) = face.getEdge( 2 )
+
+	    face.getEdge( - 1 ).setTwin( horizonEdge.twin );
+
+	    return face.getEdge( 0 ); // the half edge whose vertex is the eyeVertex
+
+
+	  },
+
+	  //  Adds 'horizon.length' faces to the hull, each face will be linked with the
+	  //  horizon opposite face and the face on the left/right
+
+	  addNewFaces: function ( eyeVertex, horizon ) {
+
+	    this.newFaces = [];
+
+	    var firstSideEdge = null;
+	    var previousSideEdge = null;
+
+	    for ( var i = 0; i < horizon.length; i ++ ) {
+
+	      var horizonEdge = horizon[ i ];
+
+	      // returns the right side edge
+
+	      var sideEdge = this.addAdjoiningFace( eyeVertex, horizonEdge );
+
+	      if ( firstSideEdge === null ) {
+
+	        firstSideEdge = sideEdge;
+
+	      } else {
+
+	        // joins face.getEdge( 1 ) with previousFace.getEdge( 0 )
+
+	        sideEdge.next.setTwin( previousSideEdge );
+
+	      }
+
+	      this.newFaces.push( sideEdge.face );
+	      previousSideEdge = sideEdge;
+
+	    }
+
+	    // perform final join of new faces
+
+	    firstSideEdge.next.setTwin( previousSideEdge );
+
+	    return this;
+
+	  },
+
+	  // Adds a vertex to the hull
+
+	  addVertexToHull: function ( eyeVertex ) {
+
+	    var horizon = [];
+
+	    this.unassigned.clear();
+
+	    // remove 'eyeVertex' from 'eyeVertex.face' so that it can't be added to the 'unassigned' vertex list
+
+	    this.removeVertexFromFace( eyeVertex, eyeVertex.face );
+
+	    this.computeHorizon( eyeVertex.point, null, eyeVertex.face, horizon );
+
+	    this.addNewFaces( eyeVertex, horizon );
+
+	    // reassign 'unassigned' vertices to the new faces
+
+	    this.resolveUnassignedPoints( this.newFaces );
+
+	    return  this;
+
+	  },
+
+	  cleanup: function () {
+
+	    this.assigned.clear();
+	    this.unassigned.clear();
+	    this.newFaces = [];
+
+	    return this;
+
+	  },
+
+	  compute: function () {
+
+	    var vertex;
+
+	    this.computeInitialHull();
+
+	    // add all available vertices gradually to the hull
+
+	    while ( ( vertex = this.nextVertexToAdd() ) !== undefined ) {
+
+	      this.addVertexToHull( vertex );
+
+	    }
+
+	    this.reindexFaces();
+
+	    this.cleanup();
+
+	    return this;
+
+	  }
+
+	} );
+
+	//
+
+	function Face() {
+
+	  this.normal = new Vector3();
+	  this.midpoint = new Vector3();
+	  this.area = 0;
+
+	  this.constant = 0; // signed distance from face to the origin
+	  this.outside = null; // reference to a vertex in a vertex list this face can see
+	  this.mark = Visible;
+	  this.edge = null;
+
+	}
+
+	Object.assign( Face, {
+
+	  create: function ( a, b, c ) {
+
+	    var face = new Face();
+
+	    var e0 = new HalfEdge( a, face );
+	    var e1 = new HalfEdge( b, face );
+	    var e2 = new HalfEdge( c, face );
+
+	    // join edges
+
+	    e0.next = e2.prev = e1;
+	    e1.next = e0.prev = e2;
+	    e2.next = e1.prev = e0;
+
+	    // main half edge reference
+
+	    face.edge = e0;
+
+	    return face.compute();
+
+	  }
+
+	} );
+
+	Object.assign( Face.prototype, {
+
+	  getEdge: function ( i ) {
+
+	    var edge = this.edge;
+
+	    while ( i > 0 ) {
+
+	      edge = edge.next;
+	      i --;
+
+	    }
+
+	    while ( i < 0 ) {
+
+	      edge = edge.prev;
+	      i ++;
+
+	    }
+
+	    return edge;
+
+	  },
+
+	  compute: function () {
+
+	    var triangle;
+
+	    return function compute() {
+
+	      if ( triangle === undefined ) triangle = new Triangle();
+
+	      var a = this.edge.tail();
+	      var b = this.edge.head();
+	      var c = this.edge.next.head();
+
+	      triangle.set( a.point, b.point, c.point );
+
+	      triangle.getNormal( this.normal );
+	      triangle.getMidpoint( this.midpoint );
+	      this.area = triangle.getArea();
+
+	      this.constant = this.normal.dot( this.midpoint );
+
+	      return this;
+
+	    };
+
+	  }(),
+
+	  distanceToPoint: function ( point ) {
+
+	    return this.normal.dot( point ) - this.constant;
+
+	  }
+
+	} );
+
+	// Entity for a Doubly-Connected Edge List (DCEL).
+
+	function HalfEdge( vertex, face ) {
+
+	  this.vertex = vertex;
+	  this.prev = null;
+	  this.next = null;
+	  this.twin = null;
+	  this.face = face;
+
+	}
+
+	Object.assign( HalfEdge.prototype, {
+
+	  head: function () {
+
+	    return this.vertex;
+
+	  },
+
+	  tail: function () {
+
+	    return this.prev ? this.prev.vertex : null;
+
+	  },
+
+	  length: function () {
+
+	    var head = this.head();
+	    var tail = this.tail();
+
+	    if ( tail !== null ) {
+
+	      return tail.point.distanceTo( head.point );
+
+	    }
+
+	    return - 1;
+
+	  },
+
+	  lengthSquared: function () {
+
+	    var head = this.head();
+	    var tail = this.tail();
+
+	    if ( tail !== null ) {
+
+	      return tail.point.distanceToSquared( head.point );
+
+	    }
+
+	    return - 1;
+
+	  },
+
+	  setTwin: function ( edge ) {
+
+	    this.twin = edge;
+	    edge.twin = this;
+
+	    return this;
+
+	  }
+
+	} );
+
+	// A vertex as a double linked list node.
+
+	function VertexNode( point ) {
+
+	  this.point = point;
+	  this.prev = null;
+	  this.next = null;
+	  this.face = null; // the face that is able to see this vertex
+
+	}
+
+	// A double linked list that contains vertex nodes.
+
+	function VertexList() {
+
+	  this.head = null;
+	  this.tail = null;
+
+	}
+
+	Object.assign( VertexList.prototype, {
+
+	  first: function () {
+
+	    return this.head;
+
+	  },
+
+	  last: function () {
+
+	    return this.tail;
+
+	  },
+
+	  clear: function () {
+
+	    this.head = this.tail = null;
+
+	    return this;
+
+	  },
+
+	  // Inserts a vertex before the target vertex
+
+	  insertBefore: function ( target, vertex ) {
+
+	    vertex.prev = target.prev;
+	    vertex.next = target;
+
+	    if ( vertex.prev === null ) {
+
+	      this.head = vertex;
+
+	    } else {
+
+	      vertex.prev.next = vertex;
+
+	    }
+
+	    target.prev = vertex;
+
+	    return this;
+
+	  },
+
+	  // Inserts a vertex after the target vertex
+
+	  insertAfter: function ( target, vertex ) {
+
+	    vertex.prev = target;
+	    vertex.next = target.next;
+
+	    if ( vertex.next === null ) {
+
+	      this.tail = vertex;
+
+	    } else {
+
+	      vertex.next.prev = vertex;
+
+	    }
+
+	    target.next = vertex;
+
+	    return this;
+
+	  },
+
+	  // Appends a vertex to the end of the linked list
+
+	  append: function ( vertex ) {
+
+	    if ( this.head === null ) {
+
+	      this.head = vertex;
+
+	    } else {
+
+	      this.tail.next = vertex;
+
+	    }
+
+	    vertex.prev = this.tail;
+	    vertex.next = null; // the tail has no subsequent vertex
+
+	    this.tail = vertex;
+
+	    return this;
+
+	  },
+
+	  // Appends a chain of vertices where 'vertex' is the head.
+
+	  appendChain: function ( vertex ) {
+
+	    if ( this.head === null ) {
+
+	      this.head = vertex;
+
+	    } else {
+
+	      this.tail.next = vertex;
+
+	    }
+
+	    vertex.prev = this.tail;
+
+	    // ensure that the 'tail' reference points to the last vertex of the chain
+
+	    while ( vertex.next !== null ) {
+
+	      vertex = vertex.next;
+
+	    }
+
+	    this.tail = vertex;
+
+	    return this;
+
+	  },
+
+	  // Removes a vertex from the linked list
+
+	  remove: function ( vertex ) {
+
+	    if ( vertex.prev === null ) {
+
+	      this.head = vertex.next;
+
+	    } else {
+
+	      vertex.prev.next = vertex.next;
+
+	    }
+
+	    if ( vertex.next === null ) {
+
+	      this.tail = vertex.prev;
+
+	    } else {
+
+	      vertex.next.prev = vertex.prev;
+
+	    }
+
+	    return this;
+
+	  },
+
+	  // Removes a list of vertices whose 'head' is 'a' and whose 'tail' is b
+
+	  removeSubList: function ( a, b ) {
+
+	    if ( a.prev === null ) {
+
+	      this.head = b.next;
+
+	    } else {
+
+	      a.prev.next = b.next;
+
+	    }
+
+	    if ( b.next === null ) {
+
+	      this.tail = a.prev;
+
+	    } else {
+
+	      b.next.prev = a.prev;
+
+	    }
+
+	    return this;
+
+	  },
+
+	  isEmpty: function () {
+
+	    return this.head === null;
+
+	  }
+
+	} );
+
+	/**
+	* @author Mugen87 / https://github.com/Mugen87
+	*/
+
+
+
+	// ConvexGeometry
+
+	function ConvexGeometry( points ) {
+
+	  Geometry.call( this );
+
+	  this.fromBufferGeometry( new ConvexBufferGeometry( points ) );
+	  this.mergeVertices();
+
+	}
+
+	ConvexGeometry.prototype = Object.create( Geometry.prototype );
+	ConvexGeometry.prototype.constructor = ConvexGeometry;
+
+	// ConvexBufferGeometry
+
+	function ConvexBufferGeometry( points ) {
+
+	  BufferGeometry.call( this );
+
+	  // buffers
+
+	  var vertices = [];
+	  var normals = [];
+
+	  // execute QuickHull
+
+	  if ( QuickHull === undefined ) {
+
+	    console.error( 'THREE.ConvexBufferGeometry: ConvexBufferGeometry relies on THREE.QuickHull' );
+
+	  }
+
+	  var quickHull = new QuickHull().setFromPoints( points );
+
+	  // generate vertices and normals
+
+	  var faces = quickHull.faces;
+
+	  for ( var i = 0; i < faces.length; i ++ ) {
+
+	    var face = faces[ i ];
+	    var edge = face.edge;
+
+	    // we move along a doubly-connected edge list to access all face points (see HalfEdge docs)
+
+	    do {
+
+	      var point = edge.head().point;
+
+	      vertices.push( point.x, point.y, point.z );
+	      normals.push( face.normal.x, face.normal.y, face.normal.z );
+
+	      edge = edge.next;
+
+	    } while ( edge !== face.edge );
+
+	  }
+
+	  // build geometry
+
+	  this.addAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+	  this.addAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
+
+	}
+
+	ConvexBufferGeometry.prototype = Object.create( BufferGeometry.prototype );
+	ConvexBufferGeometry.prototype.constructor = ConvexBufferGeometry;
+
+	/**
+	 * This is the base class for `MorphologyPolyline` and `MorphologyPolycylinder`.
+	 * It handles the common features, mainly related to soma creation
 	 */
-	class MorphologyPolyline extends Object3D {
+	class MorphologyShapeBase extends Object3D {
 
 	  /**
 	   * @constructor
 	   * Builds a moprho as a polyline
-	   * @param {Morphology} morpho - raw object that describes a morphology (usually straight from a JSON file)
+	   * @param {Object} morpho - raw object that describes a morphology (usually straight from a JSON file)
 	   * @param {object} options - the option object
 	   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
 	   */
 	  constructor (morpho, options) {
 	    super();
 
+	    this._pointToTarget = null;
+	    this._morpho = morpho;
+
 	    // fetch the optional color
 	    let color = Tools.getOption(options, 'color', null);
 
 	    // simple color lookup, so that every section type is shown in a different color
 	    this._sectionColors = {
-	      axon: color || 0x0000ff,
-	      basal_dendrite: color || 0x990000,
-	      apical_dendrite: color || 0xf442ad, // shoud be pink
+	      axon: color || 0x1111ff,
+	      basal_dendrite: color || 0xff1111,
+	      apical_dendrite: color || 0xf442ad,
 	    };
 
-	    let sections = morpho.getArrayOfSections();
-
-	    // creating a polyline for each section
-	    for (let i=0; i<sections.length; i++) {
-	      let sectionPolyline = this._buildSection( sections[i] );
-	      this.add( sectionPolyline );
-	    }
-
-	    // adding the soma as a sphere
-	    // adding the soma as a sphere
-	    let somaData = morpho.getSoma();
-	    let somaShape = this._buildSoma(somaData);
-	    this.add( somaShape );
-	    
-	    // this is because the Allen ref is not oriented the same way as WebGL
-	    this.rotateX( Math.PI );
-	    this.rotateY( Math.PI );
-
-	    // compute the bounding box, useful for further camera targeting
-	    this.box = new Box3().setFromObject(this);
 	  }
 
 
-
-	  _buildSoma (soma) {
+	  /**
+	   * @private
+	   * The method to build a soma mesh using the 'default' way, aka using simply the
+	   * data from the soma.
+	   * @return {THREE.Mesh} the soma mesh
+	   */
+	  _buildSomaDefault() {
+	    let soma = this._morpho.getSoma();
 	    let somaPoints = soma.getPoints();
 
 	    // case when soma is a single point
 	    if (somaPoints.length === 1) {
 	      let somaSphere = new Mesh(
-	        new SphereGeometry( soma.getRadius()*5, 32, 32 ),
-	        new MeshPhongMaterial( {color: 0xff0000, transparent: true, opacity:0.5} )
+	        new SphereGeometry( soma.getRadius(), 32, 32 ),
+	        new MeshPhongMaterial( {color: 0x000000, transparent: true, opacity:0.3} )
 	      );
 
 	      somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2]);
 	      return somaSphere
 
-
 	    // when soma is multiple points
-	    } else {
+	    } else if (somaPoints.length > 1) {
 	      // compute the average of the points
-	      let center = [0, 0, 0];
-	      for (let i=0; i<somaPoints.length; i++) {
-	        center[0] += somaPoints[i][0];
-	        center[1] += somaPoints[i][1];
-	        center[2] += somaPoints[i][2];
-	      }
-
-	      let centerV = new Vector3( center[0] / somaPoints.length,
-	                                       center[1] / somaPoints.length,
-	                                       center[2] / somaPoints.length);
-
+	      let center = soma.getCenter();
+	      let centerV = new Vector3( center[0] ,center[1], center[2]);
 	      var geometry = new Geometry();
 
 	      for (let i=0; i<somaPoints.length; i++) {
@@ -55784,9 +57048,131 @@
 	        side: DoubleSide
 	      } ));
 	      return somaMesh
+
+	    } else {
+	      console.warn("No soma defined");
 	    }
 	  }
 
+
+	  /**
+	   * @private
+	   * Here we build a soma convex polygon based on the 1st points of the orphan
+	   * sections + the points available in the soma description
+	   * @return {THREE.Mesh} the soma mesh
+	   */
+	  _buildSomaFromOrphanSections () {
+	    let somaPoints = this._morpho.getSoma().getPoints();
+	    let somaMesh = null;
+
+	    // getting all the 1st points of orphan sections
+	    let somaPolygonPoints = this._morpho.getOrphanSections().map(function(s){
+	      let allPoints = s.getPoints();
+	      let firstOne = allPoints[1];
+	      return new Vector3(...firstOne)
+	    });
+
+	    // adding the points of the soma (adds values mostly if we a soma polygon)
+	    for (let i=0; i<somaPoints.length; i++) {
+	      somaPolygonPoints.push(new Vector3(...somaPoints[i]));
+	    }
+
+	    let geometry = new ConvexGeometry( somaPolygonPoints );
+	    let material = new MeshPhongMaterial( {
+	      color: 0x555555,
+	      transparent: true,
+	      opacity:0.7,
+	      side: DoubleSide
+	    });
+	    somaMesh = new Mesh( geometry, material );
+	    return somaMesh
+	  }
+
+
+
+
+	  /**
+	   * @private
+	   * Builds the soma. The type of soma depends on the option
+	   * @param {Object} options - The option object
+	   * @param {String|null} options.somaMode - "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
+	   */
+	  _buildSoma (options) {
+	    this._pointToTarget = this._morpho.getSoma().getCenter();
+	    // can be 'default' or 'fromOrphanSections'
+	    let buildMode = Tools.getOption(options, 'somaMode', null);
+	    let somaMesh = null;
+
+	    if (buildMode === "fromOrphanSections") {
+	      somaMesh = this._buildSomaFromOrphanSections();
+	    } else {
+	      somaMesh = this._buildSomaDefault();
+	    }
+
+	    return somaMesh 
+	  }
+
+
+	  /**
+	   * Get the point to target when using the method lookAt. If the soma is valid,
+	   * this will be the center of the soma. If no soma is valid, it will be the
+	   * center of the box
+	   * @return {Array} center with the shape [x: Number, y: Number, z: Number]
+	   */
+	  getTargetPoint () {
+	    if (this._pointToTarget) {
+	      // rotate this because Allen needs it (just like the sections)
+	      let lookat = new Vector3(this._pointToTarget[0], this._pointToTarget[1], this._pointToTarget[2]);
+	      lookat.applyAxisAngle ( new Vector3(1, 0, 0), Math.PI );
+	      lookat.applyAxisAngle ( new Vector3(0, 1, 0), Math.PI );
+	      return lookat
+	    } else {
+	      return this.box.getCenter().clone()
+	    }
+	  }
+
+
+	}
+
+	/**
+	 * The MorphologyPolyline is the simplest 3D representation of a morphology, using
+	 * simple polylines.
+	 * Compared to its cylinder-based alternative (MorphologyPolycylinder), this one
+	 * is more suitable for displaying several morphologies (up to maybe a hundred,
+	 * depending on length and machine performance)
+	 * MorphologyPolyline extends from THREE.Object so that it's easy to integrate.
+	 * It's constructor
+	 */
+	class MorphologyPolyline extends MorphologyShapeBase {
+
+	  /**
+	   * @constructor
+	   * Builds a moprho as a polyline
+	   * @param {Morphology} morpho - raw object that describes a morphology (usually straight from a JSON file)
+	   * @param {object} options - the option object
+	   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+	   */
+	  constructor (morpho, options) {
+	    super(morpho, options);
+	    let sections = this._morpho.getArrayOfSections();
+
+	    // creating a polyline for each section
+	    for (let i=0; i<sections.length; i++) {
+	      let sectionPolyline = this._buildSection( sections[i] );
+	      this.add( sectionPolyline );
+	    }
+
+	    // adding the soma as a sphere
+	    let somaShape = this._buildSoma(options);
+	    this.add( somaShape );
+
+	    // this is because the Allen ref is not oriented the same way as WebGL
+	    this.rotateX( Math.PI );
+	    this.rotateY( Math.PI );
+
+	    // compute the bounding box, useful for further camera targeting
+	    this.box = new Box3().setFromObject(this);
+	  }
 
 
 	  /**
@@ -55833,7 +57219,7 @@
 	 * MorphologyPolycylinder extends from THREE.Object so that it's easy to integrate.
 	 * It's constructor
 	 */
-	class MorphologyPolycylinder extends Object3D {
+	class MorphologyPolycylinder extends MorphologyShapeBase {
 
 	  /**
 	   * @constructor
@@ -55843,19 +57229,9 @@
 	   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
 	   */
 	  constructor (morpho, options) {
-	    super();
+	    super(morpho, options);
 
-	    // fetch the optional color
-	    let color = Tools.getOption(options, 'color', null);
-
-	    // simple color lookup, so that every section type is shown in a different color
-	    this._sectionColors = {
-	      axon: color || 0x1111ff,
-	      basal_dendrite: color || 0xff1111,
-	      apical_dendrite: color || 0xf442ad,
-	    };
-
-	    let sections = morpho.getArrayOfSections();
+	    let sections = this._morpho.getArrayOfSections();
 
 	    // creating a polyline for each section
 	    for (let i=0; i<sections.length; i++) {
@@ -55864,8 +57240,8 @@
 	    }
 
 	    // adding the soma as a sphere
-	    let somaData = morpho.getSoma();
-	    let somaShape = this._buildSoma(somaData);
+	    let somaData = this._morpho.getSoma();
+	    let somaShape = this._buildSoma(options);
 	    this.add( somaShape );
 
 	    // this is because the Allen ref is not oriented the same way as WebGL
@@ -55874,57 +57250,7 @@
 
 	    // compute the bounding box, useful for further camera targeting
 	    this.box = new Box3().setFromObject(this);
-	  }
 
-
-	  _buildSoma (soma) {
-	    let somaPoints = soma.getPoints();
-
-	    // case when soma is a single point
-	    if (somaPoints.length === 1) {
-	      let somaSphere = new Mesh(
-	        new SphereGeometry( soma.getRadius()*5, 32, 32 ),
-	        new MeshPhongMaterial( {color: 0xff0000, transparent: true, opacity:0.5} )
-	      );
-
-	      somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2]);
-	      return somaSphere
-
-
-	    // when soma is multiple points
-	    } else {
-	      // compute the average of the points
-	      let center = [0, 0, 0];
-	      for (let i=0; i<somaPoints.length; i++) {
-	        center[0] += somaPoints[i][0];
-	        center[1] += somaPoints[i][1];
-	        center[2] += somaPoints[i][2];
-	      }
-
-	      let centerV = new Vector3( center[0] / somaPoints.length,
-	                                       center[1] / somaPoints.length,
-	                                       center[2] / somaPoints.length);
-
-	      var geometry = new Geometry();
-
-	      for (let i=0; i<somaPoints.length; i++) {
-	        geometry.vertices.push(
-	          new Vector3(somaPoints[i][0], somaPoints[i][1], somaPoints[i][2]),
-	          new Vector3(somaPoints[(i+1)%somaPoints.length][0], somaPoints[(i+1)%somaPoints.length][1], somaPoints[(i+1)%somaPoints.length][2]),
-	          centerV
-	        );
-	        geometry.faces.push(new Face3(3 * i, 3 * i + 1, 3 * i + 2));
-
-	      }
-
-	      var somaMesh = new Mesh(geometry, new MeshBasicMaterial( {
-	        color: 0x000000,
-	        transparent: true,
-	        opacity:0.3,
-	        side: DoubleSide
-	      } ));
-	      return somaMesh
-	    }
 	  }
 
 
@@ -55936,7 +57262,7 @@
 	   * @return {THREE.Line} the constructed polyline
 	   */
 	  _buildSection (section) {
-	    let material = new MeshBasicMaterial({
+	    let material = new MeshPhongMaterial({
 	      color: this._sectionColors[section.getTypename()]
 	    });
 
@@ -56013,12 +57339,20 @@
 	    return mesh
 	  }
 
+
 	}
 
 	var morphologycorejs = createCommonjsModule(function (module, exports) {
 	(function (global, factory) {
 	  factory(exports);
 	}(commonjsGlobal, (function (exports) {
+	  /*
+	  * Author   Jonathan Lurie - http://me.jonathanlurie.fr
+	  * License  Apache License 2.0
+	  * Lab      Blue Brain Project, EPFL
+	  */
+
+
 	  /**
 	   * A section is a list of 3D points and some metadata. A section can have one parent
 	   * and multiple children when the dendrite or axone divide into mutliple dendrites
@@ -56045,6 +57379,34 @@
 	      this._points = null;
 	      this._radiuses = null;
 	      this._morphology = morphology;
+
+
+	      /*
+	      Standardized swc files (www.neuromorpho.org)
+	      0 - undefined
+	      1 - soma
+	      2 - axon
+	      3 - (basal) dendrite
+	      4 - apical dendrite
+	      5+ - custom
+	      */
+	      this._typevalueToTypename = {
+	        "0" : "undefined",
+	        "1" : "soma",
+	        "2" : "axon",
+	        "3" : "basal_dendrite",
+	        "4" : "apical_dendrite",
+	        "5" : "custom"
+	      };
+
+	      this._typenameToTypevalue = {
+	        "undefined" : 0,
+	        "soma" : 1,
+	        "axon" : 2,
+	        "basal_dendrite" : 3,
+	        "apical_dendrite" : 4,
+	        "custom" : 5
+	      };
 	    }
 
 
@@ -56069,40 +57431,92 @@
 
 
 	    /**
-	     * Define the typename
-	     * @param { }
+	     * Define the typename, like in the SWC spec. Must be one of:
+	     *  - "undefined"
+	     *  - "soma" (even though this one should be used to build a Soma instance)
+	     *  - "axon"
+	     *  - "basal_dendrite"
+	     *  - "apical_dendrite"
+	     *  - "custom"
+	     * Not that this method automaically sets the typevalue accordingly.
+	     * For more info, go to http://www.neuronland.org/NLMorphologyConverter/MorphologyFormats/SWC/Spec.html
+	     * @param {String} tn - the typename
 	     */
 	    setTypename (tn) {
-	      // TODO: use a table that makes the relation bt typevalue and typename
-	      this._typename = tn;
+	      if (tn in this._typenameToTypevalue) {
+	        this._typename = tn;
+	        this._typevalue = this._typenameToTypevalue[tn];
+	      } else {
+	        console.warn( "The typename must be one of " + Object.key(this._typenameToTypevalue).join(" ") );
+	      }
 	    }
 
+
+	    /**
+	     * Get the typename as a String
+	     * @return {String}
+	     */
 	    getTypename () {
 	      return this._typename
 	    }
 
 
+	    /**
+	     * Defnies the typevalue, which is the integer that goes in pair with the type name.
+	     * According to SWC spec. Must be one of:
+	     * - 0, for undefined
+	     * - 1, for soma (even though this one should be used to build a Soma instance)
+	     * - 2, for axon
+	     * - 3, for basal dendrite
+	     * - 4, for apical dendrite
+	     * - 5, for custom
+	     * Note that defining the type value will automatically set the type name accordingly.
+	     * @param {Number} tv - the type value
+	     */
 	    setTypeValue (tv) {
 	      this._typevalue = tv;
 	    }
 
+
+	    /**
+	     * Get the type value
+	     * @return {Number}
+	     */
 	    getTypevalue () {
 	      return this._typevalue
 	    }
 
 
+	    /**
+	     * Add a point to _this_ current section
+	     * @param {Number} x - the x coordinate of the point to add
+	     * @param {Number} y - the y coordinate of the point to add
+	     * @param {Number} z - the z coordinate of the point to add
+	     * @param {Number} r - the radius at the point to add. (default: 1)
+	     */
 	    addPoint (x, y, z, r=1) {
 	      this._points.push( [x, y, z] );
 	      this._radiuses.push( r );
 	    }
 
+
+	    /**
+	     * Get all the points of _this_ section as an array
+	     * @return {Array} each element are of form [x: Number, y: Number, y: Number]
+	     */
 	    getPoints () {
 	      return this._points
 	    }
 
+
+	    /**
+	     * Get all the radiuses of the point in _this_ section
+	     * @return {Array}
+	     */
 	    getRadiuses () {
 	      return this._radiuses
 	    }
+
 
 	    /**
 	     * Build a section using a raw section object.
@@ -56137,6 +57551,10 @@
 	    }
 
 
+	    /**
+	     * Get the parent section of _this_ section
+	     * @return {Section} the parent
+	     */
 	    getParent () {
 	      return this._parent
 	    }
@@ -56191,9 +57609,20 @@
 
 	  }
 
+	  /*
+	  * Author   Jonathan Lurie - http://me.jonathanlurie.fr
+	  * License  Apache License 2.0
+	  * Lab      Blue Brain Project, EPFL
+	  */
+
+
+
 	  /**
 	   * The soma is the cell body of a neurone and thus is sort of a simplified version
 	   * of a Section, in term of datastructure.
+	   * A soma can be made of a single point (then it's just a center point) or of several,
+	   * then it's a more accurate description of a soma. When described with several points,
+	   * the representation is usually as a 2D polygon (even though it's in a 3D space)
 	   */
 	  class Soma {
 	    constructor () {
@@ -56224,23 +57653,74 @@
 	    }
 
 
+	    /**
+	     * Add a point to the soma description
+	     * @param {Number} x - the x coordinate of the point to add
+	     * @param {Number} y - the y coordinate of the point to add
+	     * @param {Number} z - the z coordinate of the point to add
+	     */
 	    addPoint (x, y, z) {
 	      this._points.push( [x, y, z]);
 	    }
 
 
+	    /**
+	     * Get all the points of the soma
+	     * @return {Array} each element of the array if of form [x: Number, y: Number, z: Number]
+	     */
 	    getPoints () {
 	      return this._points
 	    }
 
+
+	    /**
+	     * Define the radius of the soma
+	     * @param {Number} r - the radius
+	     */
 	    setRadius (r) {
 	      this._radius = r;
 	    }
 
 
+	    /**
+	     * Get the radius of the soma.
+	     * @return {Number}
+	     */
 	    getRadius () {
 	      return this._radius
 	    }
+
+
+	    /**
+	     * Return the center of the soma.
+	     * If the soma is made of a single point and a radius, this method returns the
+	     * single point. If the soma is made of several points, this method returns the
+	     * average.
+	     * @return {Array|null} coordinate of the center as [x: Number, y: Number, z: Number]
+	     */
+	    getCenter () {
+	      let nbPoints = this._points.length;
+
+	      if (nbPoints === 1) {
+	        return this._points[0].slice()
+	      } else if (nbPoints > 1){
+
+	        let average = [0, 0, 0];
+	        for (let i=0; i<nbPoints; i++) {
+	          average[0] += this._points[i][0];
+	          average[1] += this._points[i][1];
+	          average[2] += this._points[i][2];
+	        }
+	        average[0] /= nbPoints;
+	        average[1] /= nbPoints;
+	        average[2] /= nbPoints;
+	        return average
+
+	      } else {
+	        return null
+	      }
+	    }
+
 
 	    /**
 	     * Build a soma using a raw soma object.
@@ -56255,6 +57735,13 @@
 	    }
 	  }
 
+	  /*
+	  * Author   Jonathan Lurie - http://me.jonathanlurie.fr
+	  * License  Apache License 2.0
+	  * Lab      Blue Brain Project, EPFL
+	  */
+
+
 	  /**
 	   * A morphology is the data representation of a neurone's anatomy. It is composed
 	   * of one soma (cell body) and sections. Sections can be axons, dendrites, etc.
@@ -56267,6 +57754,10 @@
 	      this._id = null;
 	      this._sections = {};
 	      this._soma = null;
+
+	      // these are catgories of sections that we may need. Look at `getOrphanSections`
+	      // and `_findSpecialSection`
+	      this._specialSections = {};
 	    }
 
 
@@ -56322,10 +57813,6 @@
 	          currentSection.addChild( children[c] );
 	        }
 	      }
-
-
-	      // Build the Soma instance
-	      // TODO
 	    }
 
 
@@ -56362,11 +57849,63 @@
 	    }
 
 
+	    /**
+	     * Get the soma Object
+	     * @return {Soma}
+	     */
 	    getSoma () {
 	      return this._soma
 	    }
 
-	    
+
+	    /**
+	     * Get all the section with no parent (_parent = null)
+	     * Those are directly tied to the soma
+	     * @param {Boolean} force - if true, the fetching among the sections will be done again
+	     * @return {Array} array of Sections
+	     */
+	    getOrphanSections (force=false) {
+	      let speciality = "orphans";
+
+	      // extract, if not done before
+	      this._findSpecialSection(
+	        "orphans",
+	        function(s){
+	          return !s.getParent()
+	        },
+	        force
+	      );
+
+	      return this._specialSections[speciality]
+	    }
+
+
+
+	    /**
+	     * @private
+	     * Helper function to build a subset of Sections based on the selections perfomed by `selector`
+	     * @param {String} specialityName - name of the spaciality
+	     * @param {Function} selector - function that takes a Section and returns a boolean.
+	     * if true is return, a section will be selected
+	     * @param {Boolean} force - if true: rebuild the list, if false: just return the list previously build
+	     */
+	    _findSpecialSection (specialityName, selector, force=false) {
+	      if (!(specialityName in this._specialSections)) {
+	        this._specialSections[specialityName] = null;
+	      }
+
+	      if (force || !this._specialSections[specialityName]) {
+	        this._specialSections[specialityName] = [];
+	        let allSections = Object.values( this._sections );
+	        for (let i=0; i<allSections.length; i++) {
+	          if (selector(allSections[i])) {
+	            this._specialSections[specialityName].push(allSections[i]);
+	          }
+	        }
+	      }
+	      return this._specialSections[specialityName]
+	    }
+
 	  }
 
 	  exports.Morphology = Morphology;
@@ -56443,4 +57982,3 @@
 	Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=morphoviewer.js.map
