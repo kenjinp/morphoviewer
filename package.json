@@ -1,7 +1,7 @@
 {
   "name": "morphoviewer",
-  "version": "0.1.1",
-  "description": "A starting point to create ES6 module for browser",
+  "version": "0.1.4",
+  "description": "A 3D neuron morphology viewer for the web",
   "repository": "jonathanlurie/morphoviewer",
   "moduleName": "morphoviewer",
   "entry": "src/main.js",

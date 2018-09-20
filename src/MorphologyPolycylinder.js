@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { Tools } from './Tools.js'
 import { MorphologyShapeBase } from './MorphologyShapeBase.js'
+import { BufferGeometryUtils } from './thirdparty/BufferGeometryUtils.js'
 
 
 /**
@@ -21,6 +22,12 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
    */
   constructor (morpho, options) {
     super(morpho, options)
+
+    this._sectionTubeMaterials = {
+      axon: new THREE.MeshPhongMaterial({ color: this._sectionColors.axon }),
+      basal_dendrite: new THREE.MeshPhongMaterial({ color: this._sectionColors.basal_dendrite }),
+      apical_dendrite: new THREE.MeshPhongMaterial({ color: this._sectionColors.apical_dendrite }),
+    }
 
     let sections = this._morpho.getArrayOfSections()
 
@@ -53,17 +60,12 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
    * @return {THREE.Line} the constructed polyline
    */
   _buildSection (section) {
-    let material = new THREE.MeshPhongMaterial({
-      color: this._sectionColors[section.getTypename()]
-    })
-
+    let material = this._sectionTubeMaterials[section.getTypename()]
     let sectionPoints = section.getPoints()
     let sectionRadius = section.getRadiuses()
-
-    // this will contain all the cylinders of the section
-    let sectionMeshes = new THREE.Object3D()
-
     let startIndex = section.getParent() ? 0 : 1
+
+    let arrayOfGeom = []
 
     for (let i=startIndex; i<sectionPoints.length - 1; i++)
     {
@@ -80,19 +82,21 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
         ),
         sectionRadius[i], // rStart
         sectionRadius[i+1], // rEnd
-        false, // openEnd
-        material
+        false // openEnd
       )
-
-      sectionMeshes.add( cyl )
+      arrayOfGeom.push(cyl)
     }
 
-    // adding some metadata as it can be useful for raycasting
-    sectionMeshes.name = section.getId()
-    sectionMeshes.userData[ "typevalue" ] = section.getTypevalue()
-    sectionMeshes.userData[ "typename" ] = section.getTypename()
+    // merging the buffer geometries to make things faster
+    let sectionGeom = BufferGeometryUtils.mergeBufferGeometries(arrayOfGeom)
+    let sectionMesh =  new THREE.Mesh(sectionGeom, material)
 
-    return sectionMeshes
+    // adding some metadata as it can be useful for raycasting
+    sectionMesh.name = section.getId()
+    sectionMesh.userData[ "typevalue" ] = section.getTypevalue()
+    sectionMesh.userData[ "typename" ] = section.getTypename()
+
+    return sectionMesh
   }
 
 
@@ -105,28 +109,27 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
    * @param {Number} rStart - radius at the `vStart` position
    * @param {Number} rEnd - radius at the `vEnd` position
    * @param {Boolean} openEnd - cylinder has open ends if true, or closed ends if false
-   * @param {THREE.Material} material - material to use (instead of creating a new one every time)
-   * @return {THREE.Mesh} the mesh containing a cylinder
+   * @return {THREE.CylinderBufferGeometry} the mesh containing a cylinder
    */
   _makeCylinder(vStart, vEnd, rStart, rEnd, openEnd, material){
     let HALF_PI = Math.PI * .5;
     let distance = vStart.distanceTo(vEnd);
     let position  = vEnd.clone().add(vStart).divideScalar(2);
 
-    let cylinder = new THREE.CylinderBufferGeometry(rStart, rEnd , distance, 8, 1, openEnd);
+    let offsetPosition = new THREE.Matrix4()//a matrix to fix pivot position
+    offsetPosition.setPosition(position);
 
+    let cylinder = new THREE.CylinderBufferGeometry(rStart, rEnd , distance, 8, 1, openEnd);
     let orientation = new THREE.Matrix4();//a new orientation matrix to offset pivot
+    orientation.multiply(offsetPosition); // test to add offset
     let offsetRotation = new THREE.Matrix4();//a matrix to fix pivot rotation
-    let offsetPosition = new THREE.Matrix4();//a matrix to fix pivot position
     orientation.lookAt(vStart,vEnd,new THREE.Vector3(0,1,0));//look at destination
     offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
     orientation.multiply(offsetRotation);//combine orientation with rotation transformations
     cylinder.applyMatrix(orientation)
+    return cylinder
 
     let mesh = new THREE.Mesh(cylinder,material);
-    mesh.position.x = position.x
-    mesh.position.y = position.y
-    mesh.position.z = position.z
     return mesh
   }
 

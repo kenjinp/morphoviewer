@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8' />
-  <title>morphoviewer 0.1.1 | Documentation</title>
+  <title>morphoviewer 0.1.4 | Documentation</title>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
   <link href='assets/bass.css' type='text/css' rel='stylesheet' />
   <link href='assets/style.css' type='text/css' rel='stylesheet' />
@@ -14,7 +14,7 @@
       <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>morphoviewer</h3>
-          <div class='mb1'><code>0.1.1</code></div>
+          <div class='mb1'><code>0.1.4</code></div>
           <input
             placeholder='Filter'
             id='filter-input'
@@ -28,6 +28,26 @@
                   href='#morphologypolycylinder'
                   class="">
                   MorphologyPolycylinder
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#mergebuffergeometries'
+                  class="">
+                  mergeBufferGeometries
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#mergebufferattributes'
+                  class="">
+                  mergeBufferAttributes
                   
                 </a>
                 
@@ -97,6 +117,24 @@
                         #addStlToMeshCollection
                       </a></li>
                       
+                      <li><a
+                        href='#morphoviewerdestroy'
+                        class='regular pre-open'>
+                        #destroy
+                      </a></li>
+                      
+                      <li><a
+                        href='#morphoviewergetcamerafieldofview'
+                        class='regular pre-open'>
+                        #getCameraFieldOfView
+                      </a></li>
+                      
+                      <li><a
+                        href='#morphoviewersetcamerafieldofview'
+                        class='regular pre-open'>
+                        #setCameraFieldOfView
+                      </a></li>
+                      
                     </ul>
                   
                   
@@ -120,15 +158,27 @@
                       <li class='h5'><span>Instance members</span></li>
                       
                       <li><a
+                        href='#threecontextgetcamerafieldofview'
+                        class='regular pre-open'>
+                        #getCameraFieldOfView
+                      </a></li>
+                      
+                      <li><a
+                        href='#threecontextsetcamerafieldofview'
+                        class='regular pre-open'>
+                        #setCameraFieldOfView
+                      </a></li>
+                      
+                      <li><a
                         href='#threecontextaddstltomeshcollection'
                         class='regular pre-open'>
                         #addStlToMeshCollection
                       </a></li>
                       
                       <li><a
-                        href='#threecontextaddmorphologypolyline'
+                        href='#threecontextaddmorphology'
                         class='regular pre-open'>
-                        #addMorphologyPolyline
+                        #addMorphology
                       </a></li>
                       
                       <li><a
@@ -260,6 +310,148 @@ It's constructor</p>
 
   
 
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='mergebuffergeometries'>
+      mergeBufferGeometries
+    </h3>
+    
+    
+  </div>
+  
+
+  
+
+  <div class='pre p1 fill-light mt0'>mergeBufferGeometries(geometries: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;THREE.BufferGeometry>, useGroups: any): THREE.BufferGeometry</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>geometries</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;THREE.BufferGeometry>)</code>
+	    
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>useGroups</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>THREE.BufferGeometry</code>:
+        
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+            <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='mergebufferattributes'>
+      mergeBufferAttributes
+    </h3>
+    
+    
+  </div>
+  
+
+  
+
+  <div class='pre p1 fill-light mt0'>mergeBufferAttributes(attributes: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;THREE.BufferAttribute>): THREE.BufferAttribute</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>attributes</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;THREE.BufferAttribute>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>THREE.BufferAttribute</code>:
+        
+
+      
+    
   
 
   
@@ -791,6 +983,166 @@ and is the only object the user should be dealing with.</p>
       </div>
     </div>
   
+    <div class='border-bottom' id='morphoviewerdestroy'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>destroy()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Kill all to save up memory, stop the annimation, removes events, delete the canvas</p>
+
+
+  <div class='pre p1 fill-light mt0'>destroy()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='morphoviewergetcamerafieldofview'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getCameraFieldOfView()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get the field of view angle of the camera, in degrees</p>
+
+
+  <div class='pre p1 fill-light mt0'>getCameraFieldOfView(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>:
+        
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='morphoviewersetcamerafieldofview'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>setCameraFieldOfView(fov)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Define the camera field of view, in degrees</p>
+
+
+  <div class='pre p1 fill-light mt0'>setCameraFieldOfView(fov: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>fov</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
+	    the fov
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
 </div>
 
   
@@ -860,6 +1212,120 @@ created by THREE
   
     <div class='py1 quiet mt1 prose-big'>Instance Members</div>
     <div class="clearfix">
+  
+    <div class='border-bottom' id='threecontextgetcamerafieldofview'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getCameraFieldOfView()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get the field of view angle of the camera, in degrees</p>
+
+
+  <div class='pre p1 fill-light mt0'>getCameraFieldOfView(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>:
+        
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='threecontextsetcamerafieldofview'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>setCameraFieldOfView(fov)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Define the camera field of view, in degrees</p>
+
+
+  <div class='pre p1 fill-light mt0'>setCameraFieldOfView(fov: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>fov</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
+	    the fov
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
   
     <div class='border-bottom' id='threecontextaddstltomeshcollection'>
       <div class="clearfix small pointer toggle-sibling">
@@ -973,11 +1439,11 @@ created by THREE
       </div>
     </div>
   
-    <div class='border-bottom' id='threecontextaddmorphologypolyline'>
+    <div class='border-bottom' id='threecontextaddmorphology'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>addMorphologyPolyline(morphoPolyline, options)</span>
+            <span class='code strong strong truncate'>addMorphology(morphoMesh, options)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -989,7 +1455,7 @@ created by THREE
 ThreeContext.</p>
 
 
-  <div class='pre p1 fill-light mt0'>addMorphologyPolyline(morphoPolyline: MorphoPolyline, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
+  <div class='pre p1 fill-light mt0'>addMorphology(morphoMesh: MorphoPolyline, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
   
   
 
@@ -1006,7 +1472,7 @@ ThreeContext.</p>
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>morphoPolyline</span> <code class='quiet'>(MorphoPolyline)</code>
+            <span class='code bold'>morphoMesh</span> <code class='quiet'>(MorphoPolyline)</code>
 	    a MorphoPolyline instance
 
           </div>
@@ -1090,7 +1556,7 @@ ThreeContext.</p>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>focusOnMorphology(name)</span>
+            <span class='code strong strong truncate'>focusOnMorphology(name, distance)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1101,7 +1567,7 @@ ThreeContext.</p>
   <p>Make the camera focus on a specific morphology</p>
 
 
-  <div class='pre p1 fill-light mt0'>focusOnMorphology(name: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>)</div>
+  <div class='pre p1 fill-light mt0'>focusOnMorphology(name: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null), distance: any)</div>
   
   
 
@@ -1118,9 +1584,21 @@ ThreeContext.</p>
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>name</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>)</code>
-	    name of the morphology in the collection
+            <span class='code bold'>name</span> <code class='quiet'>((<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)
+            = <code>null</code>)</code>
+	    name of the morphology in the collection. If 
+<code>null</code>
+, takes the first one
 
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>distance</span> <code class='quiet'>(any
+            = <code>1000</code>)</code>
+	    
           </div>
           
         </div>

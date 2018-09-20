@@ -18,7 +18,6 @@ class MorphoViewer {
     }
 
     this._threeContext = new ThreeContext( divObj )
-
   }
 
 
@@ -36,20 +35,16 @@ class MorphoViewer {
     // create a mirphology object
     let morphology = new morphologycorejs.Morphology()
     morphology.buildFromRawMorphology( morphoObj )
-    //console.log( morphology )
-
     let asPolyline = Tools.getOption(options, "asPolyline", true)
 
     if (asPolyline) {
       let morphoPolyLine = new MorphologyPolyline( morphology, options )
-      this._threeContext.addMorphologyPolyline(morphoPolyLine, options)
+      this._threeContext.addMorphology(morphoPolyLine, options)
     } else {
       let morpho = new MorphologyPolycylinder( morphology, options )
-      this._threeContext.addMorphologyPolyline(morpho, options)
+      this._threeContext.addMorphology(morpho, options)
     }
   }
-
-
 
 
   /**
@@ -64,10 +59,31 @@ class MorphoViewer {
   }
 
 
-
+  /**
+   * Kill all to save up memory, stop the annimation, removes events, delete the canvas
+   */
   destroy () {
     this._threeContext.destroy()
   }
+
+
+  /**
+   * Get the field of view angle of the camera, in degrees
+   * @return {Number}
+   */
+  getCameraFieldOfView () {
+    return this._threeContext.getCameraFieldOfView()
+  }
+
+
+  /**
+   * Define the camera field of view, in degrees
+   * @param {Number} fov - the fov
+   */
+  setCameraFieldOfView (fov) {
+    this._threeContext.setCameraFieldOfView(fov)
+  }
+
 }
 
 export { MorphoViewer }

@@ -71,6 +71,26 @@ class ThreeContext {
 
 
   /**
+   * Get the field of view angle of the camera, in degrees
+   * @return {Number}
+   */
+  getCameraFieldOfView () {
+    return this._camera.fov
+  }
+
+
+  /**
+   * Define the camera field of view, in degrees
+   * @param {Number} fov - the fov
+   */
+  setCameraFieldOfView (fov) {
+    this._camera.fov = fov
+    this._camera.updateProjectionMatrix()
+    this._render()
+  }
+
+
+  /**
    * Adds a mesh from its URL. The mesh has to encoded into the STL format
    * @param {String} url - the url of the STL file
    * @param {Object} options - the options object
@@ -138,25 +158,26 @@ class ThreeContext {
   /**
    * Add a MorphoPolyline object (which are ThreeJS Object3D) into the scene of this
    * ThreeContext.
-   * @param {MorphoPolyline} morphoPolyline - a MorphoPolyline instance
+   * @param {MorphoPolyline} morphoMesh - a MorphoPolyline instance
    * @param {Object} options - the option object
    * @param {String} options.name - the identifier to give to the MorphoPolyline instance within a local collection
    * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
    * @param {Function} options.onDone - callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
    */
-  addMorphologyPolyline (morphoPolyline, options) {
+  addMorphology (morphoMesh, options) {
     // generate a random name in case none was provided
     let name = Tools.getOption( options, "name", "morpho_" + Math.round(Math.random() * 1000000).toString() )
     let focusOn = Tools.getOption( options, "focusOn", true )
+    let focusDistance = Tools.getOption( options, "distance", 1000 )
 
-    this._morphologyPolylineCollection[ name ] = morphoPolyline
-    this._scene.add( morphoPolyline )
+    this._morphologyPolylineCollection[ name ] = morphoMesh
+    this._scene.add( morphoMesh )
 
     if (focusOn)
-      this.focusOnMorphology( name )
+      this.focusOnMorphology( name , focusDistance)
 
     // call a callback if declared, with the name of the morphology in arg
-    let onDone = Tools.getOption( options, "onDone", null )
+    let onDone = Tools.getOption( options, "onDone" )
     if (onDone) {
       onDone( name )
     }
@@ -167,17 +188,27 @@ class ThreeContext {
 
   /**
    * Make the camera focus on a specific morphology
-   * @param {String} name - name of the morphology in the collection
+   * @param {String|null} name - name of the morphology in the collection. If `null`, takes the first one
    */
-  focusOnMorphology (name) {
+  focusOnMorphology (name=null, distance=1000) {
+    // if no name of morphology is provided, we take the first one
+    if (!name) {
+      let allNames = Object.keys( this._morphologyPolylineCollection )
+      if (allNames.length) {
+        name = allNames[0]
+      } else {
+        return
+      }
+    }
+
     let morpho = this._morphologyPolylineCollection[ name ]
-    let morphoBox = morpho.box
-    let boxSize = new THREE.Vector3()
-    morphoBox.getSize(boxSize)
-    let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3
+    //let morphoBox = morpho.box
+    //let boxSize = new THREE.Vector3()
+    //morphoBox.getSize(boxSize)
+    //let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3
     let targetPoint = morpho.getTargetPoint()
     // we try to get pretty close to the soma, hence the averageSide/5
-    this._camera.position.set(targetPoint.x - averageSide/5, targetPoint.y, targetPoint.z)
+    this._camera.position.set(targetPoint.x, targetPoint.y, targetPoint.z - distance)
     this._camera.lookAt( targetPoint )
     this._controls.target.copy( targetPoint )
     this._render()

@@ -54661,6 +54661,26 @@
 
 
 	  /**
+	   * Get the field of view angle of the camera, in degrees
+	   * @return {Number}
+	   */
+	  getCameraFieldOfView () {
+	    return this._camera.fov
+	  }
+
+
+	  /**
+	   * Define the camera field of view, in degrees
+	   * @param {Number} fov - the fov
+	   */
+	  setCameraFieldOfView (fov) {
+	    this._camera.fov = fov;
+	    this._camera.updateProjectionMatrix();
+	    this._render();
+	  }
+
+
+	  /**
 	   * Adds a mesh from its URL. The mesh has to encoded into the STL format
 	   * @param {String} url - the url of the STL file
 	   * @param {Object} options - the options object
@@ -54728,25 +54748,26 @@
 	  /**
 	   * Add a MorphoPolyline object (which are ThreeJS Object3D) into the scene of this
 	   * ThreeContext.
-	   * @param {MorphoPolyline} morphoPolyline - a MorphoPolyline instance
+	   * @param {MorphoPolyline} morphoMesh - a MorphoPolyline instance
 	   * @param {Object} options - the option object
 	   * @param {String} options.name - the identifier to give to the MorphoPolyline instance within a local collection
 	   * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
 	   * @param {Function} options.onDone - callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
 	   */
-	  addMorphologyPolyline (morphoPolyline, options) {
+	  addMorphology (morphoMesh, options) {
 	    // generate a random name in case none was provided
 	    let name = Tools.getOption( options, "name", "morpho_" + Math.round(Math.random() * 1000000).toString() );
 	    let focusOn = Tools.getOption( options, "focusOn", true );
+	    let focusDistance = Tools.getOption( options, "distance", 1000 );
 
-	    this._morphologyPolylineCollection[ name ] = morphoPolyline;
-	    this._scene.add( morphoPolyline );
+	    this._morphologyPolylineCollection[ name ] = morphoMesh;
+	    this._scene.add( morphoMesh );
 
 	    if (focusOn)
-	      this.focusOnMorphology( name );
+	      this.focusOnMorphology( name , focusDistance);
 
 	    // call a callback if declared, with the name of the morphology in arg
-	    let onDone = Tools.getOption( options, "onDone", null );
+	    let onDone = Tools.getOption( options, "onDone" );
 	    if (onDone) {
 	      onDone( name );
 	    }
@@ -54757,17 +54778,27 @@
 
 	  /**
 	   * Make the camera focus on a specific morphology
-	   * @param {String} name - name of the morphology in the collection
+	   * @param {String|null} name - name of the morphology in the collection. If `null`, takes the first one
 	   */
-	  focusOnMorphology (name) {
+	  focusOnMorphology (name=null, distance=1000) {
+	    // if no name of morphology is provided, we take the first one
+	    if (!name) {
+	      let allNames = Object.keys( this._morphologyPolylineCollection );
+	      if (allNames.length) {
+	        name = allNames[0];
+	      } else {
+	        return
+	      }
+	    }
+
 	    let morpho = this._morphologyPolylineCollection[ name ];
-	    let morphoBox = morpho.box;
-	    let boxSize = new Vector3();
-	    morphoBox.getSize(boxSize);
-	    let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3;
+	    //let morphoBox = morpho.box
+	    //let boxSize = new THREE.Vector3()
+	    //morphoBox.getSize(boxSize)
+	    //let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3
 	    let targetPoint = morpho.getTargetPoint();
 	    // we try to get pretty close to the soma, hence the averageSide/5
-	    this._camera.position.set(targetPoint.x - averageSide/5, targetPoint.y, targetPoint.z);
+	    this._camera.position.set(targetPoint.x, targetPoint.y, targetPoint.z - distance);
 	    this._camera.lookAt( targetPoint );
 	    this._controls.target.copy( targetPoint );
 	    this._render();
@@ -56330,6 +56361,392 @@
 
 	}
 
+	/*
+	 * @author mrdoob / http://mrdoob.com/
+	 */
+
+	let BufferGeometryUtils = {
+
+	  computeTangents: function ( geometry ) {
+
+	    var index = geometry.index;
+	    var attributes = geometry.attributes;
+
+	    // based on http://www.terathon.com/code/tangent.html
+	    // (per vertex tangents)
+
+	    if ( index === null ||
+	       attributes.position === undefined ||
+	       attributes.normal === undefined ||
+	       attributes.uv === undefined ) {
+
+	      console.warn( 'THREE.BufferGeometry: Missing required attributes (index, position, normal or uv) in BufferGeometry.computeTangents()' );
+	      return;
+
+	    }
+
+	    var indices = index.array;
+	    var positions = attributes.position.array;
+	    var normals = attributes.normal.array;
+	    var uvs = attributes.uv.array;
+
+	    var nVertices = positions.length / 3;
+
+	    if ( attributes.tangent === undefined ) {
+
+	      geometry.addAttribute( 'tangent', new BufferAttribute( new Float32Array( 4 * nVertices ), 4 ) );
+
+	    }
+
+	    var tangents = attributes.tangent.array;
+
+	    var tan1 = [], tan2 = [];
+
+	    for ( var i = 0; i < nVertices; i ++ ) {
+
+	      tan1[ i ] = new Vector3();
+	      tan2[ i ] = new Vector3();
+
+	    }
+
+	    var vA = new Vector3(),
+	      vB = new Vector3(),
+	      vC = new Vector3(),
+
+	      uvA = new Vector2(),
+	      uvB = new Vector2(),
+	      uvC = new Vector2(),
+
+	      sdir = new Vector3(),
+	      tdir = new Vector3();
+
+	    function handleTriangle( a, b, c ) {
+
+	      vA.fromArray( positions, a * 3 );
+	      vB.fromArray( positions, b * 3 );
+	      vC.fromArray( positions, c * 3 );
+
+	      uvA.fromArray( uvs, a * 2 );
+	      uvB.fromArray( uvs, b * 2 );
+	      uvC.fromArray( uvs, c * 2 );
+
+	      var x1 = vB.x - vA.x;
+	      var x2 = vC.x - vA.x;
+
+	      var y1 = vB.y - vA.y;
+	      var y2 = vC.y - vA.y;
+
+	      var z1 = vB.z - vA.z;
+	      var z2 = vC.z - vA.z;
+
+	      var s1 = uvB.x - uvA.x;
+	      var s2 = uvC.x - uvA.x;
+
+	      var t1 = uvB.y - uvA.y;
+	      var t2 = uvC.y - uvA.y;
+
+	      var r = 1.0 / ( s1 * t2 - s2 * t1 );
+
+	      sdir.set(
+	        ( t2 * x1 - t1 * x2 ) * r,
+	        ( t2 * y1 - t1 * y2 ) * r,
+	        ( t2 * z1 - t1 * z2 ) * r
+	      );
+
+	      tdir.set(
+	        ( s1 * x2 - s2 * x1 ) * r,
+	        ( s1 * y2 - s2 * y1 ) * r,
+	        ( s1 * z2 - s2 * z1 ) * r
+	      );
+
+	      tan1[ a ].add( sdir );
+	      tan1[ b ].add( sdir );
+	      tan1[ c ].add( sdir );
+
+	      tan2[ a ].add( tdir );
+	      tan2[ b ].add( tdir );
+	      tan2[ c ].add( tdir );
+
+	    }
+
+	    var groups = geometry.groups;
+
+	    if ( groups.length === 0 ) {
+
+	      groups = [ {
+	        start: 0,
+	        count: indices.length
+	      } ];
+
+	    }
+
+	    for ( var i = 0, il = groups.length; i < il; ++ i ) {
+
+	      var group = groups[ i ];
+
+	      var start = group.start;
+	      var count = group.count;
+
+	      for ( var j = start, jl = start + count; j < jl; j += 3 ) {
+
+	        handleTriangle(
+	          indices[ j + 0 ],
+	          indices[ j + 1 ],
+	          indices[ j + 2 ]
+	        );
+
+	      }
+
+	    }
+
+	    var tmp = new Vector3(), tmp2 = new Vector3();
+	    var n = new Vector3(), n2 = new Vector3();
+	    var w, t, test;
+
+	    function handleVertex( v ) {
+
+	      n.fromArray( normals, v * 3 );
+	      n2.copy( n );
+
+	      t = tan1[ v ];
+
+	      // Gram-Schmidt orthogonalize
+
+	      tmp.copy( t );
+	      tmp.sub( n.multiplyScalar( n.dot( t ) ) ).normalize();
+
+	      // Calculate handedness
+
+	      tmp2.crossVectors( n2, t );
+	      test = tmp2.dot( tan2[ v ] );
+	      w = ( test < 0.0 ) ? - 1.0 : 1.0;
+
+	      tangents[ v * 4 ] = tmp.x;
+	      tangents[ v * 4 + 1 ] = tmp.y;
+	      tangents[ v * 4 + 2 ] = tmp.z;
+	      tangents[ v * 4 + 3 ] = w;
+
+	    }
+
+	    for ( var i = 0, il = groups.length; i < il; ++ i ) {
+
+	      var group = groups[ i ];
+
+	      var start = group.start;
+	      var count = group.count;
+
+	      for ( var j = start, jl = start + count; j < jl; j += 3 ) {
+
+	        handleVertex( indices[ j + 0 ] );
+	        handleVertex( indices[ j + 1 ] );
+	        handleVertex( indices[ j + 2 ] );
+
+	      }
+
+	    }
+
+	  },
+
+	  /**
+	   * @param  {Array<THREE.BufferGeometry>} geometries
+	   * @return {THREE.BufferGeometry}
+	   */
+	  mergeBufferGeometries: function ( geometries, useGroups ) {
+
+	    var isIndexed = geometries[ 0 ].index !== null;
+
+	    var attributesUsed = new Set( Object.keys( geometries[ 0 ].attributes ) );
+	    var morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
+
+	    var attributes = {};
+	    var morphAttributes = {};
+
+	    var mergedGeometry = new BufferGeometry();
+
+	    var offset = 0;
+
+	    for ( var i = 0; i < geometries.length; ++ i ) {
+
+	      var geometry = geometries[ i ];
+
+	      // ensure that all geometries are indexed, or none
+
+	      if ( isIndexed !== ( geometry.index !== null ) ) return null;
+
+	      // gather attributes, exit early if they're different
+
+	      for ( var name in geometry.attributes ) {
+
+	        if ( ! attributesUsed.has( name ) ) return null;
+
+	        if ( attributes[ name ] === undefined ) attributes[ name ] = [];
+
+	        attributes[ name ].push( geometry.attributes[ name ] );
+
+	      }
+
+	      // gather morph attributes, exit early if they're different
+
+	      for ( var name in geometry.morphAttributes ) {
+
+	        if ( ! morphAttributesUsed.has( name ) ) return null;
+
+	        if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
+
+	        morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
+
+	      }
+
+	      // gather .userData
+
+	      mergedGeometry.userData.mergedUserData = mergedGeometry.userData.mergedUserData || [];
+	      mergedGeometry.userData.mergedUserData.push( geometry.userData );
+
+	      if ( useGroups ) {
+
+	        var count;
+
+	        if ( isIndexed ) {
+
+	          count = geometry.index.count;
+
+	        } else if ( geometry.attributes.position !== undefined ) {
+
+	          count = geometry.attributes.position.count;
+
+	        } else {
+
+	          return null;
+
+	        }
+
+	        mergedGeometry.addGroup( offset, count, i );
+
+	        offset += count;
+
+	      }
+
+	    }
+
+	    // merge indices
+
+	    if ( isIndexed ) {
+
+	      var indexOffset = 0;
+	      var mergedIndex = [];
+
+	      for ( var i = 0; i < geometries.length; ++ i ) {
+
+	        var index = geometries[ i ].index;
+
+	        for ( var j = 0; j < index.count; ++ j ) {
+
+	          mergedIndex.push( index.getX( j ) + indexOffset );
+
+	        }
+
+	        indexOffset += geometries[ i ].attributes.position.count;
+
+	      }
+
+	      mergedGeometry.setIndex( mergedIndex );
+
+	    }
+
+	    // merge attributes
+
+	    for ( var name in attributes ) {
+
+	      var mergedAttribute = this.mergeBufferAttributes( attributes[ name ] );
+
+	      if ( ! mergedAttribute ) return null;
+
+	      mergedGeometry.addAttribute( name, mergedAttribute );
+
+	    }
+
+	    // merge morph attributes
+
+	    for ( var name in morphAttributes ) {
+
+	      var numMorphTargets = morphAttributes[ name ][ 0 ].length;
+
+	      if ( numMorphTargets === 0 ) break;
+
+	      mergedGeometry.morphAttributes = mergedGeometry.morphAttributes || {};
+	      mergedGeometry.morphAttributes[ name ] = [];
+
+	      for ( var i = 0; i < numMorphTargets; ++ i ) {
+
+	        var morphAttributesToMerge = [];
+
+	        for ( var j = 0; j < morphAttributes[ name ].length; ++ j ) {
+
+	          morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
+
+	        }
+
+	        var mergedMorphAttribute = this.mergeBufferAttributes( morphAttributesToMerge );
+
+	        if ( ! mergedMorphAttribute ) return null;
+
+	        mergedGeometry.morphAttributes[ name ].push( mergedMorphAttribute );
+
+	      }
+
+	    }
+
+	    return mergedGeometry;
+
+	  },
+
+	  /**
+	   * @param {Array<THREE.BufferAttribute>} attributes
+	   * @return {THREE.BufferAttribute}
+	   */
+	  mergeBufferAttributes: function ( attributes ) {
+
+	    var TypedArray;
+	    var itemSize;
+	    var normalized;
+	    var arrayLength = 0;
+
+	    for ( var i = 0; i < attributes.length; ++ i ) {
+
+	      var attribute = attributes[ i ];
+
+	      if ( attribute.isInterleavedBufferAttribute ) return null;
+
+	      if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
+	      if ( TypedArray !== attribute.array.constructor ) return null;
+
+	      if ( itemSize === undefined ) itemSize = attribute.itemSize;
+	      if ( itemSize !== attribute.itemSize ) return null;
+
+	      if ( normalized === undefined ) normalized = attribute.normalized;
+	      if ( normalized !== attribute.normalized ) return null;
+
+	      arrayLength += attribute.array.length;
+
+	    }
+
+	    var array = new TypedArray( arrayLength );
+	    var offset = 0;
+
+	    for ( var i = 0; i < attributes.length; ++ i ) {
+
+	      array.set( attributes[ i ].array, offset );
+
+	      offset += attributes[ i ].array.length;
+
+	    }
+
+	    return new BufferAttribute( array, itemSize, normalized );
+
+	  }
+
+	};
+
 	/**
 	 * The MorphologyPolycylinder is a tubular representation of a morphology, using cylinders.
 	 * this alternative to MorphologyPolyline is heavier on CPU and GPU so is more made when
@@ -56348,6 +56765,12 @@
 	   */
 	  constructor (morpho, options) {
 	    super(morpho, options);
+
+	    this._sectionTubeMaterials = {
+	      axon: new MeshPhongMaterial({ color: this._sectionColors.axon }),
+	      basal_dendrite: new MeshPhongMaterial({ color: this._sectionColors.basal_dendrite }),
+	      apical_dendrite: new MeshPhongMaterial({ color: this._sectionColors.apical_dendrite }),
+	    };
 
 	    let sections = this._morpho.getArrayOfSections();
 
@@ -56380,17 +56803,12 @@
 	   * @return {THREE.Line} the constructed polyline
 	   */
 	  _buildSection (section) {
-	    let material = new MeshPhongMaterial({
-	      color: this._sectionColors[section.getTypename()]
-	    });
-
+	    let material = this._sectionTubeMaterials[section.getTypename()];
 	    let sectionPoints = section.getPoints();
 	    let sectionRadius = section.getRadiuses();
-
-	    // this will contain all the cylinders of the section
-	    let sectionMeshes = new Object3D();
-
 	    let startIndex = section.getParent() ? 0 : 1;
+
+	    let arrayOfGeom = [];
 
 	    for (let i=startIndex; i<sectionPoints.length - 1; i++)
 	    {
@@ -56407,19 +56825,21 @@
 	        ),
 	        sectionRadius[i], // rStart
 	        sectionRadius[i+1], // rEnd
-	        false, // openEnd
-	        material
+	        false // openEnd
 	      );
-
-	      sectionMeshes.add( cyl );
+	      arrayOfGeom.push(cyl);
 	    }
 
-	    // adding some metadata as it can be useful for raycasting
-	    sectionMeshes.name = section.getId();
-	    sectionMeshes.userData[ "typevalue" ] = section.getTypevalue();
-	    sectionMeshes.userData[ "typename" ] = section.getTypename();
+	    // merging the buffer geometries to make things faster
+	    let sectionGeom = BufferGeometryUtils.mergeBufferGeometries(arrayOfGeom);
+	    let sectionMesh =  new Mesh(sectionGeom, material);
 
-	    return sectionMeshes
+	    // adding some metadata as it can be useful for raycasting
+	    sectionMesh.name = section.getId();
+	    sectionMesh.userData[ "typevalue" ] = section.getTypevalue();
+	    sectionMesh.userData[ "typename" ] = section.getTypename();
+
+	    return sectionMesh
 	  }
 
 
@@ -56432,28 +56852,27 @@
 	   * @param {Number} rStart - radius at the `vStart` position
 	   * @param {Number} rEnd - radius at the `vEnd` position
 	   * @param {Boolean} openEnd - cylinder has open ends if true, or closed ends if false
-	   * @param {THREE.Material} material - material to use (instead of creating a new one every time)
-	   * @return {THREE.Mesh} the mesh containing a cylinder
+	   * @return {THREE.CylinderBufferGeometry} the mesh containing a cylinder
 	   */
 	  _makeCylinder(vStart, vEnd, rStart, rEnd, openEnd, material){
 	    let HALF_PI = Math.PI * .5;
 	    let distance = vStart.distanceTo(vEnd);
 	    let position  = vEnd.clone().add(vStart).divideScalar(2);
 
-	    let cylinder = new CylinderBufferGeometry(rStart, rEnd , distance, 8, 1, openEnd);
-
-	    let orientation = new Matrix4();//a new orientation matrix to offset pivot
-	    let offsetRotation = new Matrix4();//a matrix to fix pivot rotation
 	    let offsetPosition = new Matrix4();//a matrix to fix pivot position
+	    offsetPosition.setPosition(position);
+
+	    let cylinder = new CylinderBufferGeometry(rStart, rEnd , distance, 8, 1, openEnd);
+	    let orientation = new Matrix4();//a new orientation matrix to offset pivot
+	    orientation.multiply(offsetPosition); // test to add offset
+	    let offsetRotation = new Matrix4();//a matrix to fix pivot rotation
 	    orientation.lookAt(vStart,vEnd,new Vector3(0,1,0));//look at destination
 	    offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
 	    orientation.multiply(offsetRotation);//combine orientation with rotation transformations
 	    cylinder.applyMatrix(orientation);
+	    return cylinder
 
 	    let mesh = new Mesh(cylinder,material);
-	    mesh.position.x = position.x;
-	    mesh.position.y = position.y;
-	    mesh.position.z = position.z;
 	    return mesh
 	  }
 
@@ -57048,7 +57467,6 @@
 	    }
 
 	    this._threeContext = new ThreeContext( divObj );
-
 	  }
 
 
@@ -57066,20 +57484,16 @@
 	    // create a mirphology object
 	    let morphology = new morphologycorejs$1.Morphology();
 	    morphology.buildFromRawMorphology( morphoObj );
-	    //console.log( morphology )
-
 	    let asPolyline = Tools.getOption(options, "asPolyline", true);
 
 	    if (asPolyline) {
 	      let morphoPolyLine = new MorphologyPolyline( morphology, options );
-	      this._threeContext.addMorphologyPolyline(morphoPolyLine, options);
+	      this._threeContext.addMorphology(morphoPolyLine, options);
 	    } else {
 	      let morpho = new MorphologyPolycylinder( morphology, options );
-	      this._threeContext.addMorphologyPolyline(morpho, options);
+	      this._threeContext.addMorphology(morpho, options);
 	    }
 	  }
-
-
 
 
 	  /**
@@ -57094,10 +57508,31 @@
 	  }
 
 
-
+	  /**
+	   * Kill all to save up memory, stop the annimation, removes events, delete the canvas
+	   */
 	  destroy () {
 	    this._threeContext.destroy();
 	  }
+
+
+	  /**
+	   * Get the field of view angle of the camera, in degrees
+	   * @return {Number}
+	   */
+	  getCameraFieldOfView () {
+	    return this._threeContext.getCameraFieldOfView()
+	  }
+
+
+	  /**
+	   * Define the camera field of view, in degrees
+	   * @param {Number} fov - the fov
+	   */
+	  setCameraFieldOfView (fov) {
+	    this._threeContext.setCameraFieldOfView(fov);
+	  }
+
 	}
 
 	exports.MorphoViewer = MorphoViewer;
