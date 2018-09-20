@@ -4,20 +4,45 @@
 
   <style>
     body {
-      margin: 0
+      margin: 0;
+      background: #DDD;
     }
+
 
     #fileInput {
       position: absolute;
       top:0;
       left: 0;
+      right: 0;
+      margin: auto;
     }
 
-    #threedeediv {
-      width: 100vw;
-      height: 100vh;
+    #cardholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      margin: auto;
+      width: 80vw;
+      height: 80vh;
+      display: inline-flex;
     }
 
+    .card {
+      width: 40%;
+      height: 100%;
+      background: #FFF;
+      margin:0 5% 0 5%;
+    }
+
+    #threedeediv1 {
+      background: #F73;
+    }
+
+    #threedeediv2 {
+      background: #73F;
+    }
   </style>
 
 </head>
@@ -25,17 +50,25 @@
   <script src="js/filepuller.min.js"></script>
   <script src="../dist/morphoviewer.js"></script>
 
-  <div id="threedeediv"></div>
+  <div id="cardholder">
+    <div id="threedeediv1" class="card"></div>
+    <div id="threedeediv2" class="card"></div>
+  </div>
 
-
-  Open JSON morphology file file <input type="file" id="fileInput" multiple>
 
   <script>
-    var fileInput = document.getElementById('fileInput');
 
-    // init the morpho viewer
-    let threedeediv = document.getElementById( 'threedeediv' )
-    let morphoViewer = new morphoviewer.MorphoViewer(threedeediv)
+    let threedeediv = [
+      document.getElementById( 'threedeediv1' ),
+      document.getElementById( 'threedeediv2' )
+    ]
+
+    let morphoViewer = [
+      new morphoviewer.MorphoViewer(threedeediv[0]),
+      new morphoviewer.MorphoViewer(threedeediv[1])
+    ]
+
+
 
     // this callback is meant to tell when the mesh is ready and displayed
     // but also to retrieve its name in the case it was not given by the user and
@@ -44,42 +77,30 @@
       console.log(`The mesh ${name} was added.`)
     }
 
-    /*
-    // optional: we load a brain model. Last param is for focusing on it
-    morphoViewer.addStlToMeshCollection(
-      '../data/meshes/mask_smooth_simple.stl',
-      {
-        name: "brain", // the name of it?
-        focusOn: true, // do we want to focus on it when it's loaded?
-        onDone: optionalCallback // what do we do when it's loaded?
+
+    filepuller.read( "../data/morphos/pc:fe187617-a993-4cf0-9b77-0ddbafb63eb8.json.gz", true, function(error, data){
+      if (error) {
+        console.warn("ERROR" + error)
+        return
       }
-    )
-    */
-
-    // manages file input
-    fileInput.addEventListener('change', function(e) {
-      var files = e.target.files;
-
-      if( !files.length ){
-        return;
-      }
-
-
-      for(let i=0; i<files.length; i++){
-        filepuller.read( files[i], true, function(error, data){
-          if (error) {
-            console.warn("ERROR" + error)
-            return
-          }
-          readMorphoFile(data)
-        })
-      }
+      readMorphoFile(data, 0)
     })
+
+
+    filepuller.read( "../data/morphos/pc:fe488875-db29-489b-9066-a3c26869691d.json.gz", true, function(error, data){
+      if (error) {
+        console.warn("ERROR" + error)
+        return
+      }
+      readMorphoFile(data, 1)
+    })
+    
+
 
 
     // Deals with the JSON content of the file
     // @param {String} buff - buff is a json string
-    function readMorphoFile( buff ){
+    function readMorphoFile( buff, index){
       let rawMorphoObj = JSON.parse( buff )
 
       // this callback is meant to tell when the morpholoy is ready and displayed
@@ -91,11 +112,11 @@
 
       // we display a morpho, second param is it's name (null: a autogenarated will do)
       // last param is "do we focus the camera on it"
-      morphoViewer.addMorphology (
+      morphoViewer[index].addMorphology (
         rawMorphoObj,
         {
           focusOn: true, // do we want the camera to focus on this one when it's loaded?
-          asPolyline: true, // with polylines of with cylinders?
+          asPolyline: false, // with polylines of with cylinders?
           onDone: optionalCallback, // what to do when it's loaded?
           //color: Math.floor(Math.random() * 0xFFFFFF), // if not present, all neurones will have there axon in blue, basal dendrite in red and apical dendrite in green
           somaMode: "fromOrphanSections",
@@ -103,6 +124,9 @@
       )
 
     }
+
+
+
 
   </script>
 

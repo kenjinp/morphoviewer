@@ -14,8 +14,9 @@
     -   [addMorphologyPolyline][10]
     -   [focusOnMorphology][11]
     -   [focusOnMesh][12]
--   [Tools][13]
-    -   [getOption][14]
+    -   [destroy][13]
+-   [Tools][14]
+    -   [getOption][15]
 
 ## MorphologyPolycylinder
 
@@ -29,8 +30,8 @@ It's constructor
 
 **Parameters**
 
--   `morpho` **[Object][15]** raw object that describes a morphology (usually straight from a JSON file)
--   `options` **[object][15]** the option object
+-   `morpho` **[Object][16]** raw object that describes a morphology (usually straight from a JSON file)
+-   `options` **[object][16]** the option object
 
 ## MorphologyPolyline
 
@@ -47,7 +48,7 @@ It's constructor
 **Parameters**
 
 -   `morpho` **Morphology** raw object that describes a morphology (usually straight from a JSON file)
--   `options` **[object][15]** the option object
+-   `options` **[object][16]** the option object
 
 ## MorphologyShapeBase
 
@@ -58,8 +59,8 @@ It handles the common features, mainly related to soma creation
 
 **Parameters**
 
--   `morpho` **[Object][15]** raw object that describes a morphology (usually straight from a JSON file)
--   `options` **[object][15]** the option object
+-   `morpho` **[Object][16]** raw object that describes a morphology (usually straight from a JSON file)
+-   `options` **[object][16]** the option object
 
 ### getTargetPoint
 
@@ -67,7 +68,7 @@ Get the point to target when using the method lookAt. If the soma is valid,
 this will be the center of the soma. If no soma is valid, it will be the
 center of the box
 
-Returns **[Array][16]** center with the shape [x: Number, y: Number, z: Number]
+Returns **[Array][17]** center with the shape [x: Number, y: Number, z: Number]
 
 ## MorphoViewer
 
@@ -84,13 +85,13 @@ Add a morphology to the collection so that it displays.
 
 **Parameters**
 
--   `morphoObj` **[Object][15]** describes the morphology of a neuron. This data comes straight from the JSON file
--   `options` **[object][15]** the optional values
-    -   `options.name` **[String][17]** The name to give to this morphology. Will be used as an identifier for several operations
-    -   `options.asPolyline` **[Boolean][18]** if true: shows a polyline view. false: shows a tubular view (default: true)
-    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added morphology. If false, the camera will not change
-    -   `options.color` **[Number][19]** the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
-    -   `options.somaMode` **[String][17]** "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
+-   `morphoObj` **[Object][16]** describes the morphology of a neuron. This data comes straight from the JSON file
+-   `options` **[object][16]** the optional values
+    -   `options.name` **[String][18]** The name to give to this morphology. Will be used as an identifier for several operations
+    -   `options.asPolyline` **[Boolean][19]** if true: shows a polyline view. false: shows a tubular view (default: true)
+    -   `options.focusOn` **[Boolean][19]** if true, the camera will focus on this added morphology. If false, the camera will not change
+    -   `options.color` **[Number][20]** the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+    -   `options.somaMode` **[String][18]** "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
 
 ### addStlToMeshCollection
 
@@ -98,10 +99,10 @@ Adds a mesh from its URL. The mesh has to encoded into the STL format
 
 **Parameters**
 
--   `url` **[String][17]** the url of the STL file
--   `options` **[Object][15]** the options object
-    -   `options.name` **[String][17]** optional name of this mesh (useful for further operations such as centering the view)
-    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added mesh. If false, the camera will not change
+-   `url` **[String][18]** the url of the STL file
+-   `options` **[Object][16]** the options object
+    -   `options.name` **[String][18]** optional name of this mesh (useful for further operations such as centering the view)
+    -   `options.focusOn` **[Boolean][19]** if true, the camera will focus on this added mesh. If false, the camera will not change
 
 ## ThreeContext
 
@@ -119,11 +120,11 @@ Adds a mesh from its URL. The mesh has to encoded into the STL format
 
 **Parameters**
 
--   `url` **[String][17]** the url of the STL file
--   `options` **[Object][15]** the options object
-    -   `options.name` **[String][17]** optional name of this mesh (useful for further operations such as centering the view)
-    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added mesh. If false, the camera will not change
-    -   `options.onDone` **[Function][20]** callback to be called when the mesh is added. Called with the name of the mesh in argument
+-   `url` **[String][18]** the url of the STL file
+-   `options` **[Object][16]** the options object
+    -   `options.name` **[String][18]** optional name of this mesh (useful for further operations such as centering the view)
+    -   `options.focusOn` **[Boolean][19]** if true, the camera will focus on this added mesh. If false, the camera will not change
+    -   `options.onDone` **[Function][21]** callback to be called when the mesh is added. Called with the name of the mesh in argument
 
 ### addMorphologyPolyline
 
@@ -133,10 +134,10 @@ ThreeContext.
 **Parameters**
 
 -   `morphoPolyline` **MorphoPolyline** a MorphoPolyline instance
--   `options` **[Object][15]** the option object
-    -   `options.name` **[String][17]** the identifier to give to the MorphoPolyline instance within a local collection
-    -   `options.focusOn` **[Boolean][18]** if true, the camera will focus on this added morphology. If false, the camera will not change
-    -   `options.onDone` **[Function][20]** callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
+-   `options` **[Object][16]** the option object
+    -   `options.name` **[String][18]** the identifier to give to the MorphoPolyline instance within a local collection
+    -   `options.focusOn` **[Boolean][19]** if true, the camera will focus on this added morphology. If false, the camera will not change
+    -   `options.onDone` **[Function][21]** callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
 
 ### focusOnMorphology
 
@@ -144,7 +145,7 @@ Make the camera focus on a specific morphology
 
 **Parameters**
 
--   `name` **[String][17]** name of the morphology in the collection
+-   `name` **[String][18]** name of the morphology in the collection
 
 ### focusOnMesh
 
@@ -152,7 +153,11 @@ Focus on a mesh, given its name
 
 **Parameters**
 
--   `name` **[string][17]** name of the mesh to focus on
+-   `name` **[string][18]** name of the mesh to focus on
+
+### destroy
+
+Kills the scene, interaction, animation and reset all objects to null
 
 ## Tools
 
@@ -166,8 +171,8 @@ the `optionObj`
 
 **Parameters**
 
--   `optionObj` **[Object][15]** the object that contain the options
--   `optionName` **[String][17]** the name of the option desired, attribute of `optionObj`
+-   `optionObj` **[Object][16]** the object that contain the options
+-   `optionName` **[String][18]** the name of the option desired, attribute of `optionObj`
 -   `optionDefaultValue` **any** default values to be returned in case `optionName` is not an attribute of `optionObj`
 
 [1]: #morphologypolycylinder
@@ -194,18 +199,20 @@ the `optionObj`
 
 [12]: #focusonmesh
 
-[13]: #tools
+[13]: #destroy
 
-[14]: #getoption
+[14]: #tools
 
-[15]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+[15]: #getoption
 
-[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-[17]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+[17]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
 
-[18]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[18]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
-[19]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[19]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
-[20]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+[20]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[21]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function

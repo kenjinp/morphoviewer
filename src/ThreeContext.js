@@ -20,11 +20,13 @@ class ThreeContext {
       return
     }
 
+    this._requestFrameId = null
+
     this._morphologyPolylineCollection = {}
     this._meshCollection = {}
 
     // init camera
-    this._camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 100000 )
+    this._camera = new THREE.PerspectiveCamera( 27, divObj.clientWidth / divObj.clientHeight, 1, 100000 )
     this._camera.position.z = 1000
 
     // init scene
@@ -45,75 +47,26 @@ class ThreeContext {
     this._renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true} )
     this._renderer.setClearColor( 0xffffff, 0 )
     this._renderer.setPixelRatio( window.devicePixelRatio )
-    this._renderer.setSize( window.innerWidth, window.innerHeight )
+    this._renderer.setSize( divObj.clientWidth, divObj.clientHeight )
     this._renderer.gammaInput = true
     this._renderer.gammaOutput = true
     divObj.appendChild( this._renderer.domElement )
 
-    this._controls = new TrackballControls( this._camera )
+    this._controls = new TrackballControls( this._camera, this._renderer.domElement )
     this._controls.rotateSpeed = 10
+    this._controls.addEventListener( 'change', this._render.bind(this) )
 
     let that = this
     window.addEventListener( 'resize', function() {
-      that._camera.aspect = window.innerWidth / window.innerHeight
+      that._camera.aspect = divObj.clientWidth / divObj.clientHeight
       that._camera.updateProjectionMatrix()
-      that._renderer.setSize( window.innerWidth, window.innerHeight )
+      that._renderer.setSize( divObj.clientWidth, divObj.clientHeight )
       that._controls.handleResize()
+      that._render()
     }, false )
 
-    //this._addStuff()
+    this._render()
     this._animate()
-  }
-
-
-  /**
-   * @private
-   * Add stuff to the scene, only for testing
-   */
-  _addStuff () {
-    let that = this
-
-    window.THREE = THREE
-
-    /*
-    var geometry = new THREE.CylinderGeometry( 5, 5, 20, 32 )
-    //var geometry = new THREE.CylinderBufferGeometry( 5, 5, 20, 32 )
-
-    var material = new THREE.MeshPhongMaterial( {color: 0xff00ff} )
-    var cylinder = new THREE.Mesh( geometry, material )
-    this._scene.add( cylinder )
-    console.log(cylinder)
-    */
-
-
-    function drawCylinder(vStart, vEnd, rStart, rEnd, openEnd){
-      var HALF_PI = Math.PI * .5;
-      var distance = vStart.distanceTo(vEnd);
-      var position  = vEnd.clone().add(vStart).divideScalar(2);
-
-      var material = new THREE.MeshLambertMaterial({color:0x0000ff});
-      var cylinder = new THREE.CylinderGeometry(rStart, rEnd , distance, 32, 1, openEnd);
-
-      var orientation = new THREE.Matrix4();//a new orientation matrix to offset pivot
-      var offsetRotation = new THREE.Matrix4();//a matrix to fix pivot rotation
-      var offsetPosition = new THREE.Matrix4();//a matrix to fix pivot position
-      orientation.lookAt(vStart,vEnd,new THREE.Vector3(0,1,0));//look at destination
-      offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
-      orientation.multiply(offsetRotation);//combine orientation with rotation transformations
-      cylinder.applyMatrix(orientation)
-
-      var mesh = new THREE.Mesh(cylinder,material);
-      mesh.position.x = position.x
-      mesh.position.y = position.y
-      mesh.position.z = position.z
-      return mesh
-    }
-
-    let c = drawCylinder( new THREE.Vector3(1000, 0, 0), new THREE.Vector3(0, 0, 1000), 10, 100, false)
-    this._scene.add( c )
-    console.log( c );
-
-
   }
 
 
@@ -162,6 +115,7 @@ class ThreeContext {
       let onDone = Tools.getOption( options, "onDone", null )
       if (onDone) {
         onDone( name )
+      that._render()
       }
     })
   }
@@ -172,9 +126,11 @@ class ThreeContext {
    * deals with rendering and updating the controls
    */
   _animate () {
-    requestAnimationFrame( this._animate.bind(this) )
+    this._requestFrameId = requestAnimationFrame( this._animate.bind(this) )
     this._controls.update()
+  }
 
+  _render () {
     this._renderer.render( this._scene, this._camera )
   }
 
@@ -204,6 +160,8 @@ class ThreeContext {
     if (onDone) {
       onDone( name )
     }
+
+    this._render()
   }
 
 
@@ -216,17 +174,13 @@ class ThreeContext {
     let morphoBox = morpho.box
     let boxSize = new THREE.Vector3()
     morphoBox.getSize(boxSize)
-    let largestSide = Math.max(boxSize.x, boxSize.y, boxSize.z)
+    let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3
     let targetPoint = morpho.getTargetPoint()
-    this._camera.position.set(targetPoint.x - largestSide, targetPoint.y, targetPoint.z)
+    // we try to get pretty close to the soma, hence the averageSide/5
+    this._camera.position.set(targetPoint.x - averageSide/5, targetPoint.y, targetPoint.z)
     this._camera.lookAt( targetPoint )
     this._controls.target.copy( targetPoint )
-
-    //let boxCenter = morphoBox.getCenter()
-    //this._camera.position.set(boxCenter.x - largestSide, boxCenter.y, boxCenter.z)
-    //this._camera.lookAt( boxCenter )
-    //this._controls.target.copy( boxCenter )
-
+    this._render()
   }
 
 
@@ -241,8 +195,24 @@ class ThreeContext {
     this._camera.position.set(boundingSphere.center.x - boundingSphere.radius*3, boundingSphere.center.y, boundingSphere.center.z)
     this._camera.lookAt( boundingSphere.center )
     this._controls.target.copy( boundingSphere.center )
+    this._render()
   }
 
+
+  /**
+   * Kills the scene, interaction, animation and reset all objects to null
+   */
+  destroy () {
+    this._controls.dispose()
+    cancelAnimationFrame(this._requestFrameId)
+    this._camera = null
+    this._controls = null
+    this._scene = null
+    this._morphologyPolylineCollection = null
+    this._meshCollection = null
+    this._renderer.domElement.remove()
+    this._renderer = null
+  }
 }
 
 export { ThreeContext }

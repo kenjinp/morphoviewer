@@ -186,21 +186,15 @@
 	} );
 
 	var REVISION = '96';
-	var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2 };
 	var CullFaceNone = 0;
 	var CullFaceBack = 1;
 	var CullFaceFront = 2;
-	var CullFaceFrontBack = 3;
-	var FrontFaceDirectionCW = 0;
-	var FrontFaceDirectionCCW = 1;
-	var BasicShadowMap = 0;
 	var PCFShadowMap = 1;
 	var PCFSoftShadowMap = 2;
 	var FrontSide = 0;
 	var BackSide = 1;
 	var DoubleSide = 2;
 	var FlatShading = 1;
-	var SmoothShading = 2;
 	var NoColors = 0;
 	var FaceColors = 1;
 	var VertexColors = 2;
@@ -276,7 +270,6 @@
 	var RGBAFormat = 1023;
 	var LuminanceFormat = 1024;
 	var LuminanceAlphaFormat = 1025;
-	var RGBEFormat = RGBAFormat;
 	var DepthFormat = 1026;
 	var DepthStencilFormat = 1027;
 	var RGB_S3TC_DXT1_Format = 33776;
@@ -318,7 +311,6 @@
 	var sRGBEncoding = 3001;
 	var GammaEncoding = 3007;
 	var RGBEEncoding = 3002;
-	var LogLuvEncoding = 3003;
 	var RGBM7Encoding = 3004;
 	var RGBM16Encoding = 3005;
 	var RGBDEncoding = 3006;
@@ -38923,112 +38915,6 @@
 	};
 
 	/**
-	 * @author thespite / http://clicktorelease.com/
-	 */
-
-
-	function ImageBitmapLoader( manager ) {
-
-		if ( typeof createImageBitmap === 'undefined' ) {
-
-			console.warn( 'THREE.ImageBitmapLoader: createImageBitmap() not supported.' );
-
-		}
-
-		if ( typeof fetch === 'undefined' ) {
-
-			console.warn( 'THREE.ImageBitmapLoader: fetch() not supported.' );
-
-		}
-
-		this.manager = manager !== undefined ? manager : DefaultLoadingManager;
-		this.options = undefined;
-
-	}
-
-	ImageBitmapLoader.prototype = {
-
-		constructor: ImageBitmapLoader,
-
-		setOptions: function setOptions( options ) {
-
-			this.options = options;
-
-			return this;
-
-		},
-
-		load: function ( url, onLoad, onProgress, onError ) {
-
-			if ( url === undefined ) url = '';
-
-			if ( this.path !== undefined ) url = this.path + url;
-
-			url = this.manager.resolveURL( url );
-
-			var scope = this;
-
-			var cached = Cache.get( url );
-
-			if ( cached !== undefined ) {
-
-				scope.manager.itemStart( url );
-
-				setTimeout( function () {
-
-					if ( onLoad ) onLoad( cached );
-
-					scope.manager.itemEnd( url );
-
-				}, 0 );
-
-				return cached;
-
-			}
-
-			fetch( url ).then( function ( res ) {
-
-				return res.blob();
-
-			} ).then( function ( blob ) {
-
-				return createImageBitmap( blob, scope.options );
-
-			} ).then( function ( imageBitmap ) {
-
-				Cache.add( url, imageBitmap );
-
-				if ( onLoad ) onLoad( imageBitmap );
-
-				scope.manager.itemEnd( url );
-
-			} ).catch( function ( e ) {
-
-				if ( onError ) onError( e );
-
-				scope.manager.itemEnd( url );
-				scope.manager.itemError( url );
-
-			} );
-
-		},
-
-		setCrossOrigin: function ( /* value */ ) {
-
-			return this;
-
-		},
-
-		setPath: function ( value ) {
-
-			this.path = value;
-			return this;
-
-		}
-
-	};
-
-	/**
 	 * @author zz85 / http://www.lab4games.net/zz85/blog
 	 * minimal class for proxing functions to Path. Replaces old "extractSubpaths()"
 	 **/
@@ -45446,165 +45332,6 @@
 	AxesHelper.prototype = Object.create( LineSegments.prototype );
 	AxesHelper.prototype.constructor = AxesHelper;
 
-	/**
-	 * @author mrdoob / http://mrdoob.com/
-	 */
-
-	function Face4( a, b, c, d, normal, color, materialIndex ) {
-
-		console.warn( 'THREE.Face4 has been removed. A THREE.Face3 will be created instead.' );
-		return new Face3( a, b, c, normal, color, materialIndex );
-
-	}
-
-	var LineStrip = 0;
-
-	var LinePieces = 1;
-
-	function MeshFaceMaterial( materials ) {
-
-		console.warn( 'THREE.MeshFaceMaterial has been removed. Use an Array instead.' );
-		return materials;
-
-	}
-
-	function MultiMaterial( materials ) {
-
-		if ( materials === undefined ) materials = [];
-
-		console.warn( 'THREE.MultiMaterial has been removed. Use an Array instead.' );
-		materials.isMultiMaterial = true;
-		materials.materials = materials;
-		materials.clone = function () {
-
-			return materials.slice();
-
-		};
-		return materials;
-
-	}
-
-	function PointCloud( geometry, material ) {
-
-		console.warn( 'THREE.PointCloud has been renamed to THREE.Points.' );
-		return new Points( geometry, material );
-
-	}
-
-	function Particle( material ) {
-
-		console.warn( 'THREE.Particle has been renamed to THREE.Sprite.' );
-		return new Sprite( material );
-
-	}
-
-	function ParticleSystem( geometry, material ) {
-
-		console.warn( 'THREE.ParticleSystem has been renamed to THREE.Points.' );
-		return new Points( geometry, material );
-
-	}
-
-	function PointCloudMaterial( parameters ) {
-
-		console.warn( 'THREE.PointCloudMaterial has been renamed to THREE.PointsMaterial.' );
-		return new PointsMaterial( parameters );
-
-	}
-
-	function ParticleBasicMaterial( parameters ) {
-
-		console.warn( 'THREE.ParticleBasicMaterial has been renamed to THREE.PointsMaterial.' );
-		return new PointsMaterial( parameters );
-
-	}
-
-	function ParticleSystemMaterial( parameters ) {
-
-		console.warn( 'THREE.ParticleSystemMaterial has been renamed to THREE.PointsMaterial.' );
-		return new PointsMaterial( parameters );
-
-	}
-
-	function Vertex( x, y, z ) {
-
-		console.warn( 'THREE.Vertex has been removed. Use THREE.Vector3 instead.' );
-		return new Vector3( x, y, z );
-
-	}
-
-	//
-
-	function DynamicBufferAttribute( array, itemSize ) {
-
-		console.warn( 'THREE.DynamicBufferAttribute has been removed. Use new THREE.BufferAttribute().setDynamic( true ) instead.' );
-		return new BufferAttribute( array, itemSize ).setDynamic( true );
-
-	}
-
-	function Int8Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Int8Attribute has been removed. Use new THREE.Int8BufferAttribute() instead.' );
-		return new Int8BufferAttribute( array, itemSize );
-
-	}
-
-	function Uint8Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Uint8Attribute has been removed. Use new THREE.Uint8BufferAttribute() instead.' );
-		return new Uint8BufferAttribute( array, itemSize );
-
-	}
-
-	function Uint8ClampedAttribute( array, itemSize ) {
-
-		console.warn( 'THREE.Uint8ClampedAttribute has been removed. Use new THREE.Uint8ClampedBufferAttribute() instead.' );
-		return new Uint8ClampedBufferAttribute( array, itemSize );
-
-	}
-
-	function Int16Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Int16Attribute has been removed. Use new THREE.Int16BufferAttribute() instead.' );
-		return new Int16BufferAttribute( array, itemSize );
-
-	}
-
-	function Uint16Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Uint16Attribute has been removed. Use new THREE.Uint16BufferAttribute() instead.' );
-		return new Uint16BufferAttribute( array, itemSize );
-
-	}
-
-	function Int32Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Int32Attribute has been removed. Use new THREE.Int32BufferAttribute() instead.' );
-		return new Int32BufferAttribute( array, itemSize );
-
-	}
-
-	function Uint32Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Uint32Attribute has been removed. Use new THREE.Uint32BufferAttribute() instead.' );
-		return new Uint32BufferAttribute( array, itemSize );
-
-	}
-
-	function Float32Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Float32Attribute has been removed. Use new THREE.Float32BufferAttribute() instead.' );
-		return new Float32BufferAttribute( array, itemSize );
-
-	}
-
-	function Float64Attribute( array, itemSize ) {
-
-		console.warn( 'THREE.Float64Attribute has been removed. Use new THREE.Float64BufferAttribute() instead.' );
-		return new Float64BufferAttribute( array, itemSize );
-
-	}
-
 	//
 
 	Curve.create = function ( construct, getPoint ) {
@@ -45679,33 +45406,6 @@
 
 	//
 
-	function ClosedSplineCurve3( points ) {
-
-		console.warn( 'THREE.ClosedSplineCurve3 has been deprecated. Use THREE.CatmullRomCurve3 instead.' );
-
-		CatmullRomCurve3.call( this, points );
-		this.type = 'catmullrom';
-		this.closed = true;
-
-	}
-
-	ClosedSplineCurve3.prototype = Object.create( CatmullRomCurve3.prototype );
-
-	//
-
-	function SplineCurve3( points ) {
-
-		console.warn( 'THREE.SplineCurve3 has been deprecated. Use THREE.CatmullRomCurve3 instead.' );
-
-		CatmullRomCurve3.call( this, points );
-		this.type = 'catmullrom';
-
-	}
-
-	SplineCurve3.prototype = Object.create( CatmullRomCurve3.prototype );
-
-	//
-
 	function Spline( points ) {
 
 		console.warn( 'THREE.Spline has been removed. Use THREE.CatmullRomCurve3 instead.' );
@@ -45737,29 +45437,6 @@
 
 	} );
 
-	//
-
-	function AxisHelper( size ) {
-
-		console.warn( 'THREE.AxisHelper has been renamed to THREE.AxesHelper.' );
-		return new AxesHelper( size );
-
-	}
-
-	function BoundingBoxHelper( object, color ) {
-
-		console.warn( 'THREE.BoundingBoxHelper has been deprecated. Creating a THREE.BoxHelper instead.' );
-		return new BoxHelper( object, color );
-
-	}
-
-	function EdgesHelper( object, hex ) {
-
-		console.warn( 'THREE.EdgesHelper has been removed. Use THREE.EdgesGeometry instead.' );
-		return new LineSegments( new EdgesGeometry( object.geometry ), new LineBasicMaterial( { color: hex !== undefined ? hex : 0xffffff } ) );
-
-	}
-
 	GridHelper.prototype.setColors = function () {
 
 		console.error( 'THREE.GridHelper: setColors() has been deprecated, pass them in the constructor instead.' );
@@ -45771,13 +45448,6 @@
 		console.error( 'THREE.SkeletonHelper: update() no longer needs to be called.' );
 
 	};
-
-	function WireframeHelper( object, hex ) {
-
-		console.warn( 'THREE.WireframeHelper has been removed. Use THREE.WireframeGeometry instead.' );
-		return new LineSegments( new WireframeGeometry( object.geometry ), new LineBasicMaterial( { color: hex !== undefined ? hex : 0xffffff } ) );
-
-	}
 
 	//
 
@@ -45791,20 +45461,6 @@
 		}
 
 	} );
-
-	function XHRLoader( manager ) {
-
-		console.warn( 'THREE.XHRLoader has been renamed to THREE.FileLoader.' );
-		return new FileLoader( manager );
-
-	}
-
-	function BinaryTextureLoader( manager ) {
-
-		console.warn( 'THREE.BinaryTextureLoader has been renamed to THREE.DataTextureLoader.' );
-		return new DataTextureLoader( manager );
-
-	}
 
 	//
 
@@ -47105,37 +46761,6 @@
 
 	};
 
-	//
-
-	var GeometryUtils = {
-
-		merge: function ( geometry1, geometry2, materialIndexOffset ) {
-
-			console.warn( 'THREE.GeometryUtils: .merge() has been moved to Geometry. Use geometry.merge( geometry2, matrix, materialIndexOffset ) instead.' );
-			var matrix;
-
-			if ( geometry2.isMesh ) {
-
-				geometry2.matrixAutoUpdate && geometry2.updateMatrix();
-
-				matrix = geometry2.matrix;
-				geometry2 = geometry2.geometry;
-
-			}
-
-			geometry1.merge( geometry2, matrix, materialIndexOffset );
-
-		},
-
-		center: function ( geometry ) {
-
-			console.warn( 'THREE.GeometryUtils: .center() has been moved to Geometry. Use geometry.center() instead.' );
-			return geometry.center();
-
-		}
-
-	};
-
 	ImageUtils.crossOrigin = undefined;
 
 	ImageUtils.loadTexture = function ( url, mapping, onLoad, onError ) {
@@ -47180,492 +46805,14 @@
 
 	};
 
-	//
-
-	function Projector() {
-
-		console.error( 'THREE.Projector has been moved to /examples/js/renderers/Projector.js.' );
-
-		this.projectVector = function ( vector, camera ) {
-
-			console.warn( 'THREE.Projector: .projectVector() is now vector.project().' );
-			vector.project( camera );
-
-		};
-
-		this.unprojectVector = function ( vector, camera ) {
-
-			console.warn( 'THREE.Projector: .unprojectVector() is now vector.unproject().' );
-			vector.unproject( camera );
-
-		};
-
-		this.pickingRay = function () {
-
-			console.error( 'THREE.Projector: .pickingRay() is now raycaster.setFromCamera().' );
-
-		};
-
-	}
-
-	//
-
-	function CanvasRenderer() {
-
-		console.error( 'THREE.CanvasRenderer has been moved to /examples/js/renderers/CanvasRenderer.js' );
-
-		this.domElement = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
-		this.clear = function () {};
-		this.render = function () {};
-		this.setClearColor = function () {};
-		this.setSize = function () {};
-
-	}
-
-	//
-
-	var SceneUtils = {
-
-		createMultiMaterialObject: function ( /* geometry, materials */ ) {
-
-			console.error( 'THREE.SceneUtils has been moved to /examples/js/utils/SceneUtils.js' );
-
-		},
-
-		detach: function ( /* child, parent, scene */ ) {
-
-			console.error( 'THREE.SceneUtils has been moved to /examples/js/utils/SceneUtils.js' );
-
-		},
-
-		attach: function ( /* child, scene, parent */ ) {
-
-			console.error( 'THREE.SceneUtils has been moved to /examples/js/utils/SceneUtils.js' );
-
-		}
-
-	};
-
-	//
-
-	function LensFlare() {
-
-		console.error( 'THREE.LensFlare has been moved to /examples/js/objects/Lensflare.js' );
-
-	}
-
-	var THREE$1 = /*#__PURE__*/Object.freeze({
-		WebGLRenderTargetCube: WebGLRenderTargetCube,
-		WebGLRenderTarget: WebGLRenderTarget,
-		WebGLRenderer: WebGLRenderer,
-		ShaderLib: ShaderLib,
-		UniformsLib: UniformsLib,
-		UniformsUtils: UniformsUtils,
-		ShaderChunk: ShaderChunk,
-		FogExp2: FogExp2,
-		Fog: Fog,
-		Scene: Scene,
-		Sprite: Sprite,
-		LOD: LOD,
-		SkinnedMesh: SkinnedMesh,
-		Skeleton: Skeleton,
-		Bone: Bone,
-		Mesh: Mesh,
-		LineSegments: LineSegments,
-		LineLoop: LineLoop,
-		Line: Line,
-		Points: Points,
-		Group: Group,
-		VideoTexture: VideoTexture,
-		DataTexture: DataTexture,
-		CompressedTexture: CompressedTexture,
-		CubeTexture: CubeTexture,
-		CanvasTexture: CanvasTexture,
-		DepthTexture: DepthTexture,
-		Texture: Texture,
-		CompressedTextureLoader: CompressedTextureLoader,
-		DataTextureLoader: DataTextureLoader,
-		CubeTextureLoader: CubeTextureLoader,
-		TextureLoader: TextureLoader,
-		ObjectLoader: ObjectLoader,
-		MaterialLoader: MaterialLoader,
-		BufferGeometryLoader: BufferGeometryLoader,
-		DefaultLoadingManager: DefaultLoadingManager,
-		LoadingManager: LoadingManager,
-		JSONLoader: JSONLoader,
-		ImageLoader: ImageLoader,
-		ImageBitmapLoader: ImageBitmapLoader,
-		FontLoader: FontLoader,
-		FileLoader: FileLoader,
-		Loader: Loader,
-		LoaderUtils: LoaderUtils,
-		Cache: Cache,
-		AudioLoader: AudioLoader,
-		SpotLightShadow: SpotLightShadow,
-		SpotLight: SpotLight,
-		PointLight: PointLight,
-		RectAreaLight: RectAreaLight,
-		HemisphereLight: HemisphereLight,
-		DirectionalLightShadow: DirectionalLightShadow,
-		DirectionalLight: DirectionalLight,
-		AmbientLight: AmbientLight,
-		LightShadow: LightShadow,
-		Light: Light,
-		StereoCamera: StereoCamera,
-		PerspectiveCamera: PerspectiveCamera,
-		OrthographicCamera: OrthographicCamera,
-		CubeCamera: CubeCamera,
-		ArrayCamera: ArrayCamera,
-		Camera: Camera,
-		AudioListener: AudioListener,
-		PositionalAudio: PositionalAudio,
-		AudioContext: AudioContext,
-		AudioAnalyser: AudioAnalyser,
-		Audio: Audio,
-		VectorKeyframeTrack: VectorKeyframeTrack,
-		StringKeyframeTrack: StringKeyframeTrack,
-		QuaternionKeyframeTrack: QuaternionKeyframeTrack,
-		NumberKeyframeTrack: NumberKeyframeTrack,
-		ColorKeyframeTrack: ColorKeyframeTrack,
-		BooleanKeyframeTrack: BooleanKeyframeTrack,
-		PropertyMixer: PropertyMixer,
-		PropertyBinding: PropertyBinding,
-		KeyframeTrack: KeyframeTrack,
-		AnimationUtils: AnimationUtils,
-		AnimationObjectGroup: AnimationObjectGroup,
-		AnimationMixer: AnimationMixer,
-		AnimationClip: AnimationClip,
-		Uniform: Uniform,
-		InstancedBufferGeometry: InstancedBufferGeometry,
-		BufferGeometry: BufferGeometry,
-		Geometry: Geometry,
-		InterleavedBufferAttribute: InterleavedBufferAttribute,
-		InstancedInterleavedBuffer: InstancedInterleavedBuffer,
-		InterleavedBuffer: InterleavedBuffer,
-		InstancedBufferAttribute: InstancedBufferAttribute,
-		Face3: Face3,
-		Object3D: Object3D,
-		Raycaster: Raycaster,
-		Layers: Layers,
-		EventDispatcher: EventDispatcher,
-		Clock: Clock,
-		QuaternionLinearInterpolant: QuaternionLinearInterpolant,
-		LinearInterpolant: LinearInterpolant,
-		DiscreteInterpolant: DiscreteInterpolant,
-		CubicInterpolant: CubicInterpolant,
-		Interpolant: Interpolant,
-		Triangle: Triangle,
-		Math: _Math,
-		Spherical: Spherical,
-		Cylindrical: Cylindrical,
-		Plane: Plane,
-		Frustum: Frustum,
-		Sphere: Sphere,
-		Ray: Ray,
-		Matrix4: Matrix4,
-		Matrix3: Matrix3,
-		Box3: Box3,
-		Box2: Box2,
-		Line3: Line3,
-		Euler: Euler,
-		Vector4: Vector4,
-		Vector3: Vector3,
-		Vector2: Vector2,
-		Quaternion: Quaternion,
-		Color: Color,
-		ImmediateRenderObject: ImmediateRenderObject,
-		VertexNormalsHelper: VertexNormalsHelper,
-		SpotLightHelper: SpotLightHelper,
-		SkeletonHelper: SkeletonHelper,
-		PointLightHelper: PointLightHelper,
-		RectAreaLightHelper: RectAreaLightHelper,
-		HemisphereLightHelper: HemisphereLightHelper,
-		GridHelper: GridHelper,
-		PolarGridHelper: PolarGridHelper,
-		FaceNormalsHelper: FaceNormalsHelper,
-		DirectionalLightHelper: DirectionalLightHelper,
-		CameraHelper: CameraHelper,
-		BoxHelper: BoxHelper,
-		Box3Helper: Box3Helper,
-		PlaneHelper: PlaneHelper,
-		ArrowHelper: ArrowHelper,
-		AxesHelper: AxesHelper,
-		Shape: Shape,
-		Path: Path,
-		ShapePath: ShapePath,
-		Font: Font,
-		CurvePath: CurvePath,
-		Curve: Curve,
-		ImageUtils: ImageUtils,
-		ShapeUtils: ShapeUtils,
-		WebGLUtils: WebGLUtils,
-		WireframeGeometry: WireframeGeometry,
-		ParametricGeometry: ParametricGeometry,
-		ParametricBufferGeometry: ParametricBufferGeometry,
-		TetrahedronGeometry: TetrahedronGeometry,
-		TetrahedronBufferGeometry: TetrahedronBufferGeometry,
-		OctahedronGeometry: OctahedronGeometry,
-		OctahedronBufferGeometry: OctahedronBufferGeometry,
-		IcosahedronGeometry: IcosahedronGeometry,
-		IcosahedronBufferGeometry: IcosahedronBufferGeometry,
-		DodecahedronGeometry: DodecahedronGeometry,
-		DodecahedronBufferGeometry: DodecahedronBufferGeometry,
-		PolyhedronGeometry: PolyhedronGeometry,
-		PolyhedronBufferGeometry: PolyhedronBufferGeometry,
-		TubeGeometry: TubeGeometry,
-		TubeBufferGeometry: TubeBufferGeometry,
-		TorusKnotGeometry: TorusKnotGeometry,
-		TorusKnotBufferGeometry: TorusKnotBufferGeometry,
-		TorusGeometry: TorusGeometry,
-		TorusBufferGeometry: TorusBufferGeometry,
-		TextGeometry: TextGeometry,
-		TextBufferGeometry: TextBufferGeometry,
-		SphereGeometry: SphereGeometry,
-		SphereBufferGeometry: SphereBufferGeometry,
-		RingGeometry: RingGeometry,
-		RingBufferGeometry: RingBufferGeometry,
-		PlaneGeometry: PlaneGeometry,
-		PlaneBufferGeometry: PlaneBufferGeometry,
-		LatheGeometry: LatheGeometry,
-		LatheBufferGeometry: LatheBufferGeometry,
-		ShapeGeometry: ShapeGeometry,
-		ShapeBufferGeometry: ShapeBufferGeometry,
-		ExtrudeGeometry: ExtrudeGeometry,
-		ExtrudeBufferGeometry: ExtrudeBufferGeometry,
-		EdgesGeometry: EdgesGeometry,
-		ConeGeometry: ConeGeometry,
-		ConeBufferGeometry: ConeBufferGeometry,
-		CylinderGeometry: CylinderGeometry,
-		CylinderBufferGeometry: CylinderBufferGeometry,
-		CircleGeometry: CircleGeometry,
-		CircleBufferGeometry: CircleBufferGeometry,
-		BoxGeometry: BoxGeometry,
-		BoxBufferGeometry: BoxBufferGeometry,
-		ShadowMaterial: ShadowMaterial,
-		SpriteMaterial: SpriteMaterial,
-		RawShaderMaterial: RawShaderMaterial,
-		ShaderMaterial: ShaderMaterial,
-		PointsMaterial: PointsMaterial,
-		MeshPhysicalMaterial: MeshPhysicalMaterial,
-		MeshStandardMaterial: MeshStandardMaterial,
-		MeshPhongMaterial: MeshPhongMaterial,
-		MeshToonMaterial: MeshToonMaterial,
-		MeshNormalMaterial: MeshNormalMaterial,
-		MeshLambertMaterial: MeshLambertMaterial,
-		MeshDepthMaterial: MeshDepthMaterial,
-		MeshDistanceMaterial: MeshDistanceMaterial,
-		MeshBasicMaterial: MeshBasicMaterial,
-		LineDashedMaterial: LineDashedMaterial,
-		LineBasicMaterial: LineBasicMaterial,
-		Material: Material,
-		Float64BufferAttribute: Float64BufferAttribute,
-		Float32BufferAttribute: Float32BufferAttribute,
-		Uint32BufferAttribute: Uint32BufferAttribute,
-		Int32BufferAttribute: Int32BufferAttribute,
-		Uint16BufferAttribute: Uint16BufferAttribute,
-		Int16BufferAttribute: Int16BufferAttribute,
-		Uint8ClampedBufferAttribute: Uint8ClampedBufferAttribute,
-		Uint8BufferAttribute: Uint8BufferAttribute,
-		Int8BufferAttribute: Int8BufferAttribute,
-		BufferAttribute: BufferAttribute,
-		ArcCurve: ArcCurve,
-		CatmullRomCurve3: CatmullRomCurve3,
-		CubicBezierCurve: CubicBezierCurve,
-		CubicBezierCurve3: CubicBezierCurve3,
-		EllipseCurve: EllipseCurve,
-		LineCurve: LineCurve,
-		LineCurve3: LineCurve3,
-		QuadraticBezierCurve: QuadraticBezierCurve,
-		QuadraticBezierCurve3: QuadraticBezierCurve3,
-		SplineCurve: SplineCurve,
-		REVISION: REVISION,
-		MOUSE: MOUSE,
-		CullFaceNone: CullFaceNone,
-		CullFaceBack: CullFaceBack,
-		CullFaceFront: CullFaceFront,
-		CullFaceFrontBack: CullFaceFrontBack,
-		FrontFaceDirectionCW: FrontFaceDirectionCW,
-		FrontFaceDirectionCCW: FrontFaceDirectionCCW,
-		BasicShadowMap: BasicShadowMap,
-		PCFShadowMap: PCFShadowMap,
-		PCFSoftShadowMap: PCFSoftShadowMap,
-		FrontSide: FrontSide,
-		BackSide: BackSide,
-		DoubleSide: DoubleSide,
-		FlatShading: FlatShading,
-		SmoothShading: SmoothShading,
-		NoColors: NoColors,
-		FaceColors: FaceColors,
-		VertexColors: VertexColors,
-		NoBlending: NoBlending,
-		NormalBlending: NormalBlending,
-		AdditiveBlending: AdditiveBlending,
-		SubtractiveBlending: SubtractiveBlending,
-		MultiplyBlending: MultiplyBlending,
-		CustomBlending: CustomBlending,
-		AddEquation: AddEquation,
-		SubtractEquation: SubtractEquation,
-		ReverseSubtractEquation: ReverseSubtractEquation,
-		MinEquation: MinEquation,
-		MaxEquation: MaxEquation,
-		ZeroFactor: ZeroFactor,
-		OneFactor: OneFactor,
-		SrcColorFactor: SrcColorFactor,
-		OneMinusSrcColorFactor: OneMinusSrcColorFactor,
-		SrcAlphaFactor: SrcAlphaFactor,
-		OneMinusSrcAlphaFactor: OneMinusSrcAlphaFactor,
-		DstAlphaFactor: DstAlphaFactor,
-		OneMinusDstAlphaFactor: OneMinusDstAlphaFactor,
-		DstColorFactor: DstColorFactor,
-		OneMinusDstColorFactor: OneMinusDstColorFactor,
-		SrcAlphaSaturateFactor: SrcAlphaSaturateFactor,
-		NeverDepth: NeverDepth,
-		AlwaysDepth: AlwaysDepth,
-		LessDepth: LessDepth,
-		LessEqualDepth: LessEqualDepth,
-		EqualDepth: EqualDepth,
-		GreaterEqualDepth: GreaterEqualDepth,
-		GreaterDepth: GreaterDepth,
-		NotEqualDepth: NotEqualDepth,
-		MultiplyOperation: MultiplyOperation,
-		MixOperation: MixOperation,
-		AddOperation: AddOperation,
-		NoToneMapping: NoToneMapping,
-		LinearToneMapping: LinearToneMapping,
-		ReinhardToneMapping: ReinhardToneMapping,
-		Uncharted2ToneMapping: Uncharted2ToneMapping,
-		CineonToneMapping: CineonToneMapping,
-		UVMapping: UVMapping,
-		CubeReflectionMapping: CubeReflectionMapping,
-		CubeRefractionMapping: CubeRefractionMapping,
-		EquirectangularReflectionMapping: EquirectangularReflectionMapping,
-		EquirectangularRefractionMapping: EquirectangularRefractionMapping,
-		SphericalReflectionMapping: SphericalReflectionMapping,
-		CubeUVReflectionMapping: CubeUVReflectionMapping,
-		CubeUVRefractionMapping: CubeUVRefractionMapping,
-		RepeatWrapping: RepeatWrapping,
-		ClampToEdgeWrapping: ClampToEdgeWrapping,
-		MirroredRepeatWrapping: MirroredRepeatWrapping,
-		NearestFilter: NearestFilter,
-		NearestMipMapNearestFilter: NearestMipMapNearestFilter,
-		NearestMipMapLinearFilter: NearestMipMapLinearFilter,
-		LinearFilter: LinearFilter,
-		LinearMipMapNearestFilter: LinearMipMapNearestFilter,
-		LinearMipMapLinearFilter: LinearMipMapLinearFilter,
-		UnsignedByteType: UnsignedByteType,
-		ByteType: ByteType,
-		ShortType: ShortType,
-		UnsignedShortType: UnsignedShortType,
-		IntType: IntType,
-		UnsignedIntType: UnsignedIntType,
-		FloatType: FloatType,
-		HalfFloatType: HalfFloatType,
-		UnsignedShort4444Type: UnsignedShort4444Type,
-		UnsignedShort5551Type: UnsignedShort5551Type,
-		UnsignedShort565Type: UnsignedShort565Type,
-		UnsignedInt248Type: UnsignedInt248Type,
-		AlphaFormat: AlphaFormat,
-		RGBFormat: RGBFormat,
-		RGBAFormat: RGBAFormat,
-		LuminanceFormat: LuminanceFormat,
-		LuminanceAlphaFormat: LuminanceAlphaFormat,
-		RGBEFormat: RGBEFormat,
-		DepthFormat: DepthFormat,
-		DepthStencilFormat: DepthStencilFormat,
-		RGB_S3TC_DXT1_Format: RGB_S3TC_DXT1_Format,
-		RGBA_S3TC_DXT1_Format: RGBA_S3TC_DXT1_Format,
-		RGBA_S3TC_DXT3_Format: RGBA_S3TC_DXT3_Format,
-		RGBA_S3TC_DXT5_Format: RGBA_S3TC_DXT5_Format,
-		RGB_PVRTC_4BPPV1_Format: RGB_PVRTC_4BPPV1_Format,
-		RGB_PVRTC_2BPPV1_Format: RGB_PVRTC_2BPPV1_Format,
-		RGBA_PVRTC_4BPPV1_Format: RGBA_PVRTC_4BPPV1_Format,
-		RGBA_PVRTC_2BPPV1_Format: RGBA_PVRTC_2BPPV1_Format,
-		RGB_ETC1_Format: RGB_ETC1_Format,
-		RGBA_ASTC_4x4_Format: RGBA_ASTC_4x4_Format,
-		RGBA_ASTC_5x4_Format: RGBA_ASTC_5x4_Format,
-		RGBA_ASTC_5x5_Format: RGBA_ASTC_5x5_Format,
-		RGBA_ASTC_6x5_Format: RGBA_ASTC_6x5_Format,
-		RGBA_ASTC_6x6_Format: RGBA_ASTC_6x6_Format,
-		RGBA_ASTC_8x5_Format: RGBA_ASTC_8x5_Format,
-		RGBA_ASTC_8x6_Format: RGBA_ASTC_8x6_Format,
-		RGBA_ASTC_8x8_Format: RGBA_ASTC_8x8_Format,
-		RGBA_ASTC_10x5_Format: RGBA_ASTC_10x5_Format,
-		RGBA_ASTC_10x6_Format: RGBA_ASTC_10x6_Format,
-		RGBA_ASTC_10x8_Format: RGBA_ASTC_10x8_Format,
-		RGBA_ASTC_10x10_Format: RGBA_ASTC_10x10_Format,
-		RGBA_ASTC_12x10_Format: RGBA_ASTC_12x10_Format,
-		RGBA_ASTC_12x12_Format: RGBA_ASTC_12x12_Format,
-		LoopOnce: LoopOnce,
-		LoopRepeat: LoopRepeat,
-		LoopPingPong: LoopPingPong,
-		InterpolateDiscrete: InterpolateDiscrete,
-		InterpolateLinear: InterpolateLinear,
-		InterpolateSmooth: InterpolateSmooth,
-		ZeroCurvatureEnding: ZeroCurvatureEnding,
-		ZeroSlopeEnding: ZeroSlopeEnding,
-		WrapAroundEnding: WrapAroundEnding,
-		TrianglesDrawMode: TrianglesDrawMode,
-		TriangleStripDrawMode: TriangleStripDrawMode,
-		TriangleFanDrawMode: TriangleFanDrawMode,
-		LinearEncoding: LinearEncoding,
-		sRGBEncoding: sRGBEncoding,
-		GammaEncoding: GammaEncoding,
-		RGBEEncoding: RGBEEncoding,
-		LogLuvEncoding: LogLuvEncoding,
-		RGBM7Encoding: RGBM7Encoding,
-		RGBM16Encoding: RGBM16Encoding,
-		RGBDEncoding: RGBDEncoding,
-		BasicDepthPacking: BasicDepthPacking,
-		RGBADepthPacking: RGBADepthPacking,
-		TangentSpaceNormalMap: TangentSpaceNormalMap,
-		ObjectSpaceNormalMap: ObjectSpaceNormalMap,
-		CubeGeometry: BoxGeometry,
-		Face4: Face4,
-		LineStrip: LineStrip,
-		LinePieces: LinePieces,
-		MeshFaceMaterial: MeshFaceMaterial,
-		MultiMaterial: MultiMaterial,
-		PointCloud: PointCloud,
-		Particle: Particle,
-		ParticleSystem: ParticleSystem,
-		PointCloudMaterial: PointCloudMaterial,
-		ParticleBasicMaterial: ParticleBasicMaterial,
-		ParticleSystemMaterial: ParticleSystemMaterial,
-		Vertex: Vertex,
-		DynamicBufferAttribute: DynamicBufferAttribute,
-		Int8Attribute: Int8Attribute,
-		Uint8Attribute: Uint8Attribute,
-		Uint8ClampedAttribute: Uint8ClampedAttribute,
-		Int16Attribute: Int16Attribute,
-		Uint16Attribute: Uint16Attribute,
-		Int32Attribute: Int32Attribute,
-		Uint32Attribute: Uint32Attribute,
-		Float32Attribute: Float32Attribute,
-		Float64Attribute: Float64Attribute,
-		ClosedSplineCurve3: ClosedSplineCurve3,
-		SplineCurve3: SplineCurve3,
-		Spline: Spline,
-		AxisHelper: AxisHelper,
-		BoundingBoxHelper: BoundingBoxHelper,
-		EdgesHelper: EdgesHelper,
-		WireframeHelper: WireframeHelper,
-		XHRLoader: XHRLoader,
-		BinaryTextureLoader: BinaryTextureLoader,
-		GeometryUtils: GeometryUtils,
-		Projector: Projector,
-		CanvasRenderer: CanvasRenderer,
-		SceneUtils: SceneUtils,
-		LensFlare: LensFlare
-	});
-
-	/**
+	/*
 	 * @author Eberhard Graether / http://egraether.com/
 	 * @author Mark Lundin   / http://mark-lundin.com
 	 * @author Simone Manini / http://daron1337.github.io
 	 * @author Luca Antiga   / http://lantiga.github.io
 	 */
 
-	/**
+	/*
 	* ES6 adapted source from the example folder of THREEJS (because there is no proper repo for it)
 	* Enables mouse control (pan, zoom, rotation)
 	*/
@@ -47692,7 +46839,7 @@
 	  this.noPan = false;
 
 	  this.staticMoving = false;
-	  this.dynamicDampingFactor = 0.2;
+	  this.dynamicDampingFactor = 0.5;
 
 	  this.minDistance = 0;
 	  this.maxDistance = Infinity;
@@ -55093,7 +54240,7 @@
 
 	var pako_1 = pako;
 
-	/**
+	/*
 	 * @author aleeper / http://adamleeper.com/
 	 * @author mrdoob / http://mrdoob.com/
 	 * @author gero3 / https://github.com/gero3
@@ -55463,11 +54610,13 @@
 	      return
 	    }
 
+	    this._requestFrameId = null;
+
 	    this._morphologyPolylineCollection = {};
 	    this._meshCollection = {};
 
 	    // init camera
-	    this._camera = new PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 100000 );
+	    this._camera = new PerspectiveCamera( 27, divObj.clientWidth / divObj.clientHeight, 1, 100000 );
 	    this._camera.position.z = 1000;
 
 	    // init scene
@@ -55488,74 +54637,26 @@
 	    this._renderer = new WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true} );
 	    this._renderer.setClearColor( 0xffffff, 0 );
 	    this._renderer.setPixelRatio( window.devicePixelRatio );
-	    this._renderer.setSize( window.innerWidth, window.innerHeight );
+	    this._renderer.setSize( divObj.clientWidth, divObj.clientHeight );
 	    this._renderer.gammaInput = true;
 	    this._renderer.gammaOutput = true;
 	    divObj.appendChild( this._renderer.domElement );
 
-	    this._controls = new TrackballControls( this._camera );
+	    this._controls = new TrackballControls( this._camera, this._renderer.domElement );
 	    this._controls.rotateSpeed = 10;
+	    this._controls.addEventListener( 'change', this._render.bind(this) );
 
 	    let that = this;
 	    window.addEventListener( 'resize', function() {
-	      that._camera.aspect = window.innerWidth / window.innerHeight;
+	      that._camera.aspect = divObj.clientWidth / divObj.clientHeight;
 	      that._camera.updateProjectionMatrix();
-	      that._renderer.setSize( window.innerWidth, window.innerHeight );
+	      that._renderer.setSize( divObj.clientWidth, divObj.clientHeight );
 	      that._controls.handleResize();
+	      that._render();
 	    }, false );
 
-	    //this._addStuff()
+	    this._render();
 	    this._animate();
-	  }
-
-
-	  /**
-	   * @private
-	   * Add stuff to the scene, only for testing
-	   */
-	  _addStuff () {
-
-	    window.THREE = THREE$1;
-
-	    /*
-	    var geometry = new THREE.CylinderGeometry( 5, 5, 20, 32 )
-	    //var geometry = new THREE.CylinderBufferGeometry( 5, 5, 20, 32 )
-
-	    var material = new THREE.MeshPhongMaterial( {color: 0xff00ff} )
-	    var cylinder = new THREE.Mesh( geometry, material )
-	    this._scene.add( cylinder )
-	    console.log(cylinder)
-	    */
-
-
-	    function drawCylinder(vStart, vEnd, rStart, rEnd, openEnd){
-	      var HALF_PI = Math.PI * .5;
-	      var distance = vStart.distanceTo(vEnd);
-	      var position  = vEnd.clone().add(vStart).divideScalar(2);
-
-	      var material = new MeshLambertMaterial({color:0x0000ff});
-	      var cylinder = new CylinderGeometry(rStart, rEnd , distance, 32, 1, openEnd);
-
-	      var orientation = new Matrix4();//a new orientation matrix to offset pivot
-	      var offsetRotation = new Matrix4();//a matrix to fix pivot rotation
-	      var offsetPosition = new Matrix4();//a matrix to fix pivot position
-	      orientation.lookAt(vStart,vEnd,new Vector3(0,1,0));//look at destination
-	      offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
-	      orientation.multiply(offsetRotation);//combine orientation with rotation transformations
-	      cylinder.applyMatrix(orientation);
-
-	      var mesh = new Mesh(cylinder,material);
-	      mesh.position.x = position.x;
-	      mesh.position.y = position.y;
-	      mesh.position.z = position.z;
-	      return mesh
-	    }
-
-	    let c = drawCylinder( new Vector3(1000, 0, 0), new Vector3(0, 0, 1000), 10, 100, false);
-	    this._scene.add( c );
-	    console.log( c );
-
-
 	  }
 
 
@@ -55604,6 +54705,7 @@
 	      let onDone = Tools.getOption( options, "onDone", null );
 	      if (onDone) {
 	        onDone( name );
+	      that._render();
 	      }
 	    });
 	  }
@@ -55614,9 +54716,11 @@
 	   * deals with rendering and updating the controls
 	   */
 	  _animate () {
-	    requestAnimationFrame( this._animate.bind(this) );
+	    this._requestFrameId = requestAnimationFrame( this._animate.bind(this) );
 	    this._controls.update();
+	  }
 
+	  _render () {
 	    this._renderer.render( this._scene, this._camera );
 	  }
 
@@ -55646,6 +54750,8 @@
 	    if (onDone) {
 	      onDone( name );
 	    }
+
+	    this._render();
 	  }
 
 
@@ -55658,17 +54764,13 @@
 	    let morphoBox = morpho.box;
 	    let boxSize = new Vector3();
 	    morphoBox.getSize(boxSize);
-	    let largestSide = Math.max(boxSize.x, boxSize.y, boxSize.z);
+	    let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3;
 	    let targetPoint = morpho.getTargetPoint();
-	    this._camera.position.set(targetPoint.x - largestSide, targetPoint.y, targetPoint.z);
+	    // we try to get pretty close to the soma, hence the averageSide/5
+	    this._camera.position.set(targetPoint.x - averageSide/5, targetPoint.y, targetPoint.z);
 	    this._camera.lookAt( targetPoint );
 	    this._controls.target.copy( targetPoint );
-
-	    //let boxCenter = morphoBox.getCenter()
-	    //this._camera.position.set(boxCenter.x - largestSide, boxCenter.y, boxCenter.z)
-	    //this._camera.lookAt( boxCenter )
-	    //this._controls.target.copy( boxCenter )
-
+	    this._render();
 	  }
 
 
@@ -55683,11 +54785,27 @@
 	    this._camera.position.set(boundingSphere.center.x - boundingSphere.radius*3, boundingSphere.center.y, boundingSphere.center.z);
 	    this._camera.lookAt( boundingSphere.center );
 	    this._controls.target.copy( boundingSphere.center );
+	    this._render();
 	  }
 
+
+	  /**
+	   * Kills the scene, interaction, animation and reset all objects to null
+	   */
+	  destroy () {
+	    this._controls.dispose();
+	    cancelAnimationFrame(this._requestFrameId);
+	    this._camera = null;
+	    this._controls = null;
+	    this._scene = null;
+	    this._morphologyPolylineCollection = null;
+	    this._meshCollection = null;
+	    this._renderer.domElement.remove();
+	    this._renderer = null;
+	  }
 	}
 
-	/**
+	/*
 	* @author Mugen87 / https://github.com/Mugen87
 	*
 	* Ported from: https://github.com/maurizzzio/quickhull3d/ by Mauricio Poppe (https://github.com/maurizzzio)
@@ -56897,7 +56015,7 @@
 
 	} );
 
-	/**
+	/*
 	* @author Mugen87 / https://github.com/Mugen87
 	*/
 
@@ -57942,6 +57060,7 @@
 	   * @param {Boolean} options.asPolyline - if true: shows a polyline view. false: shows a tubular view (default: true)
 	   * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
 	   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+	   * @param {String} options.somaMode - "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
 	   */
 	  addMorphology (morphoObj, options) {
 	    // create a mirphology object
@@ -57975,6 +57094,10 @@
 	  }
 
 
+
+	  destroy () {
+	    this._threeContext.destroy();
+	  }
 	}
 
 	exports.MorphoViewer = MorphoViewer;

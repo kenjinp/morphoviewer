@@ -64,6 +64,10 @@ class MorphoViewer {
   }
 
 
+
+  destroy () {
+    this._threeContext.destroy()
+  }
 }
 
 export { MorphoViewer }
