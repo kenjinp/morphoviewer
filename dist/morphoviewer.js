@@ -56226,15 +56226,20 @@
 	      somaPolygonPoints.push(new Vector3(...somaPoints[i]));
 	    }
 
-	    let geometry = new ConvexGeometry( somaPolygonPoints );
-	    let material = new MeshPhongMaterial( {
-	      color: 0x555555,
-	      transparent: true,
-	      opacity:0.7,
-	      side: DoubleSide
-	    });
-	    somaMesh = new Mesh( geometry, material );
-	    return somaMesh
+	    try {
+	      let geometry = new ConvexGeometry( somaPolygonPoints );
+	      let material = new MeshPhongMaterial( {
+	        color: 0x555555,
+	        transparent: true,
+	        opacity:0.7,
+	        side: DoubleSide
+	      });
+	      somaMesh = new Mesh( geometry, material );
+	      return somaMesh
+	    } catch (e) {
+	      console.warn("Attempted to build a soma from orphan section points but failed. Back to the regular version.");
+	      return this._buildSomaDefault()
+	    }
 	  }
 
 
@@ -56258,7 +56263,7 @@
 	      somaMesh = this._buildSomaDefault();
 	    }
 
-	    return somaMesh 
+	    return somaMesh
 	  }
 
 
@@ -57061,10 +57066,15 @@
 	     */
 	    initWithRawSection (rawSection) {
 	      this._id = rawSection.id;
-	      this._typename = rawSection.typename;
-	      this._typevalue = rawSection.typevalue;
+
 	      this._points = rawSection.points.map( function(p){return p.position});
 	      this._radiuses = rawSection.points.map( function(p){return p.radius});
+
+	      // in some cases, we have only the typename or the typevalue, in this case we perform  a lookup
+	      if (rawSection.typename || rawSection.typevalue) {
+	        this._typename = rawSection.typename || this._typevalueToTypename[rawSection.typevalue];
+	        this._typevalue = rawSection.typevalue || this._typenameToTypevalue[rawSection.typename];
+	      }
 
 	      return this._id
 	    }

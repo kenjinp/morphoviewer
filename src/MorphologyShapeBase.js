@@ -108,15 +108,20 @@ class MorphologyShapeBase extends THREE.Object3D {
       somaPolygonPoints.push(new THREE.Vector3(...somaPoints[i]))
     }
 
-    let geometry = new ConvexGeometry( somaPolygonPoints )
-    let material = new THREE.MeshPhongMaterial( {
-      color: 0x555555,
-      transparent: true,
-      opacity:0.7,
-      side: THREE.DoubleSide
-    })
-    somaMesh = new THREE.Mesh( geometry, material )
-    return somaMesh
+    try {
+      let geometry = new ConvexGeometry( somaPolygonPoints )
+      let material = new THREE.MeshPhongMaterial( {
+        color: 0x555555,
+        transparent: true,
+        opacity:0.7,
+        side: THREE.DoubleSide
+      })
+      somaMesh = new THREE.Mesh( geometry, material )
+      return somaMesh
+    } catch (e) {
+      console.warn("Attempted to build a soma from orphan section points but failed. Back to the regular version.")
+      return this._buildSomaDefault()
+    }
   }
 
 
@@ -140,7 +145,7 @@ class MorphologyShapeBase extends THREE.Object3D {
       somaMesh = this._buildSomaDefault()
     }
 
-    return somaMesh 
+    return somaMesh
   }
 
 
