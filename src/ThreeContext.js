@@ -2,19 +2,26 @@ import * as THREE from "three"
 import { TrackballControls } from './thirdparty/TrackballControls.js'
 import { STLLoader } from './thirdparty/STLLoader.js'
 import { Tools } from './Tools.js'
+import { EventManager } from './EventManager.js'
 
 
 /**
  * ThreeContext creates a WebGL context using THREEjs. It also handle mouse control.
  * A MorphologyPolyline instance is added to it.
+ * An event can be associated to a ThreeContext instance: `onRaycast` with the method
+ * `.on("onRaycast", function(s){...})` where `s` is the section object being raycasted.
  */
-class ThreeContext {
+class ThreeContext extends EventManager {
 
   /**
    * @param {DONObject} divObj - the div object as a DOM element. Will be used to host the WebGL context
    * created by THREE
    */
   constructor ( divObj=null ) {
+    super()
+
+    let that = this
+
     if (!divObj) {
       console.error("The ThreeContext needs a div object")
       return
@@ -22,7 +29,7 @@ class ThreeContext {
 
     this._requestFrameId = null
 
-    this._morphologyPolylineCollection = {}
+    this._morphologyMeshCollection = {}
     this._meshCollection = {}
 
     // init camera
@@ -44,6 +51,7 @@ class ThreeContext {
     light2.position.set( -1000, -1000, -1000 )
     this._scene.add( light2 )
 
+
     this._renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true} )
     this._renderer.setClearColor( 0xffffff, 0 )
     this._renderer.setPixelRatio( window.devicePixelRatio )
@@ -52,11 +60,29 @@ class ThreeContext {
     this._renderer.gammaOutput = true
     divObj.appendChild( this._renderer.domElement )
 
+    // all the necessary for raycasting
+    this._raycaster = new THREE.Raycaster()
+    this._raycastMouse = new THREE.Vector2()
+
+    function onMouseMove( event ) {
+      let elem = that._renderer.domElement
+      let relX = event.pageX - elem.offsetLeft
+      let relY = event.pageY - elem.offsetTop
+
+      that._raycastMouse.x = ( relX / that._renderer.domElement.clientWidth ) * 2 - 1;
+      that._raycastMouse.y = - ( relY / that._renderer.domElement.clientHeight ) * 2 + 1;
+    }
+
+    this._renderer.domElement.addEventListener( 'mousemove', onMouseMove, false )
+    this._renderer.domElement.addEventListener( 'dblclick', function(evt){
+      that._performRaycast()
+    }, false )
+
+    // mouse controls
     this._controls = new TrackballControls( this._camera, this._renderer.domElement )
     this._controls.rotateSpeed = 10
     this._controls.addEventListener( 'change', this._render.bind(this) )
 
-    let that = this
     window.addEventListener( 'resize', function() {
       that._camera.aspect = divObj.clientWidth / divObj.clientHeight
       that._camera.updateProjectionMatrix()
@@ -155,6 +181,35 @@ class ThreeContext {
   }
 
 
+
+  /**
+   * @private
+   * Throw a ray from the camera to the pointer, potentially intersect some sections.
+   * If so, emit the event `onRaycast` with the section instance as argument
+   */
+  _performRaycast () {
+    // update the picking ray with the camera and mouse position
+    this._raycaster.setFromCamera( this._raycastMouse, this._camera )
+
+    // calculate objects intersecting the picking ray
+    var intersects = this._raycaster.intersectObjects( this._scene.children, true );
+
+    if (intersects.length) {
+      //console.log(this._morphologyMeshCollection)
+      let sectionMesh = intersects[ 0 ].object
+
+      if ("sectionId" in sectionMesh.userData) {
+        let sectionId = sectionMesh.userData.sectionId
+        let morphologyObj = sectionMesh.parent.getMorphology()
+        this.emit("onRaycast", [morphologyObj._sections[sectionId]])
+      } else {
+        this.emit("onRaycast", [null])
+      }
+
+    }
+  }
+
+
   /**
    * Add a MorphoPolyline object (which are ThreeJS Object3D) into the scene of this
    * ThreeContext.
@@ -166,11 +221,13 @@ class ThreeContext {
    */
   addMorphology (morphoMesh, options) {
     // generate a random name in case none was provided
-    let name = Tools.getOption( options, "name", "morpho_" + Math.round(Math.random() * 1000000).toString() )
+    let name = options.name // set before
     let focusOn = Tools.getOption( options, "focusOn", true )
     let focusDistance = Tools.getOption( options, "distance", 1000 )
 
-    this._morphologyPolylineCollection[ name ] = morphoMesh
+    morphoMesh.userData["morphologyName"] = name
+
+    this._morphologyMeshCollection[ name ] = morphoMesh
     this._scene.add( morphoMesh )
 
     if (focusOn)
@@ -193,7 +250,7 @@ class ThreeContext {
   focusOnMorphology (name=null, distance=1000) {
     // if no name of morphology is provided, we take the first one
     if (!name) {
-      let allNames = Object.keys( this._morphologyPolylineCollection )
+      let allNames = Object.keys( this._morphologyMeshCollection )
       if (allNames.length) {
         name = allNames[0]
       } else {
@@ -201,7 +258,7 @@ class ThreeContext {
       }
     }
 
-    let morpho = this._morphologyPolylineCollection[ name ]
+    let morpho = this._morphologyMeshCollection[ name ]
     //let morphoBox = morpho.box
     //let boxSize = new THREE.Vector3()
     //morphoBox.getSize(boxSize)
@@ -239,7 +296,7 @@ class ThreeContext {
     this._camera = null
     this._controls = null
     this._scene = null
-    this._morphologyPolylineCollection = null
+    this._morphologyMeshCollection = null
     this._meshCollection = null
     this._renderer.domElement.remove()
     this._renderer = null

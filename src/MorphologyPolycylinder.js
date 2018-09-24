@@ -34,7 +34,8 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
     // creating a polyline for each section
     for (let i=0; i<sections.length; i++) {
       let section = this._buildSection( sections[i] )
-      this.add( section )
+      if (section)
+        this.add( section )
     }
 
     // adding the soma as a sphere
@@ -65,11 +66,14 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
     let sectionRadius = section.getRadiuses()
     let startIndex = section.getParent() ? 0 : 1
 
+    if ((sectionPoints.length - startIndex) < 2)
+      return null
+
     let arrayOfGeom = []
 
     for (let i=startIndex; i<sectionPoints.length - 1; i++)
     {
-      let cyl = this._makeCylinder(
+      let cyl = Tools.makeCylinder(
         new THREE.Vector3( // vStart
           sectionPoints[i][0],
           sectionPoints[i][1],
@@ -93,46 +97,12 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
 
     // adding some metadata as it can be useful for raycasting
     sectionMesh.name = section.getId()
+    sectionMesh.userData[ "sectionId" ] = section.getId()
     sectionMesh.userData[ "typevalue" ] = section.getTypevalue()
     sectionMesh.userData[ "typename" ] = section.getTypename()
 
     return sectionMesh
   }
-
-
-  /**
-   * @private
-   * Generate a cylinder with a starting point and en endpoint because
-   * THREEjs does not provide that
-   * @param {THREE.Vector3} vStart - the start position
-   * @param {THREE.Vector3} vEnd - the end position
-   * @param {Number} rStart - radius at the `vStart` position
-   * @param {Number} rEnd - radius at the `vEnd` position
-   * @param {Boolean} openEnd - cylinder has open ends if true, or closed ends if false
-   * @return {THREE.CylinderBufferGeometry} the mesh containing a cylinder
-   */
-  _makeCylinder(vStart, vEnd, rStart, rEnd, openEnd, material){
-    let HALF_PI = Math.PI * .5;
-    let distance = vStart.distanceTo(vEnd);
-    let position  = vEnd.clone().add(vStart).divideScalar(2);
-
-    let offsetPosition = new THREE.Matrix4()//a matrix to fix pivot position
-    offsetPosition.setPosition(position);
-
-    let cylinder = new THREE.CylinderBufferGeometry(rStart, rEnd , distance, 8, 1, openEnd);
-    let orientation = new THREE.Matrix4();//a new orientation matrix to offset pivot
-    orientation.multiply(offsetPosition); // test to add offset
-    let offsetRotation = new THREE.Matrix4();//a matrix to fix pivot rotation
-    orientation.lookAt(vStart,vEnd,new THREE.Vector3(0,1,0));//look at destination
-    offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
-    orientation.multiply(offsetRotation);//combine orientation with rotation transformations
-    cylinder.applyMatrix(orientation)
-    return cylinder
-
-    let mesh = new THREE.Mesh(cylinder,material);
-    return mesh
-  }
-
 
 }
 

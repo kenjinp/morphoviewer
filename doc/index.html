@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8' />
-  <title>morphoviewer 0.1.6 | Documentation</title>
+  <title>morphoviewer 0.1.7 | Documentation</title>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
   <link href='assets/bass.css' type='text/css' rel='stylesheet' />
   <link href='assets/style.css' type='text/css' rel='stylesheet' />
@@ -14,7 +14,7 @@
       <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>morphoviewer</h3>
-          <div class='mb1'><code>0.1.6</code></div>
+          <div class='mb1'><code>0.1.7</code></div>
           <input
             placeholder='Filter'
             id='filter-input'
@@ -765,7 +765,7 @@ and is the only object the user should be dealing with.</p>
   <p>Add a morphology to the collection so that it displays.</p>
 
 
-  <div class='pre p1 fill-light mt0'>addMorphology(morphoObj: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
+  <div class='pre p1 fill-light mt0'>addMorphology(morphoObj: (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a> | morphologycorejs.Morphology), options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
   
   
 
@@ -782,8 +782,9 @@ and is the only object the user should be dealing with.</p>
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>morphoObj</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
-	    describes the morphology of a neuron. This data comes straight from the JSON file
+            <span class='code bold'>morphoObj</span> <code class='quiet'>((<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a> | morphologycorejs.Morphology))</code>
+	    describes the morphology of a neuron. This data comes straight from the JSON file or it can also be a Morphology object from 
+<code>morphologycorejs</code>
 
           </div>
           

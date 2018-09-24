@@ -71,6 +71,7 @@ class MorphologyPolyline extends MorphologyShapeBase {
 
     // adding some metadata as it can be useful for raycasting
     line.name = section.getId()
+    line.userData[ "sectionId" ] = section.getId()
     line.userData[ "typevalue" ] = section.getTypevalue()
     line.userData[ "typename" ] = section.getTypename()
 

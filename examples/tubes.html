@@ -1,21 +1,41 @@
 <html>
 <head>
-  <title>Test</title>
+  <meta charset="utf-8">
+  <title>TUBE</title>
 
   <style>
     body {
-      margin: 0
+      margin: 0;
+      background-color: #50efff;
+      font-family: monospace;
     }
 
-    #fileInput {
+    #infobox {
       position: absolute;
       top:0;
       left: 0;
     }
 
     #threedeediv {
-      width: 100vw;
-      height: 100vh;
+      margin: 5vh 5vw 5vh 5vw;
+      width: 90vw;
+      height: 90vh;
+      background-color: #fff;
+    }
+
+    #infotext {
+      position: fixed;
+      width: 100%;
+      text-align: center;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+    }
+
+    canvas {
+      cursor: crosshair;
     }
 
   </style>
@@ -27,8 +47,11 @@
 
   <div id="threedeediv"></div>
 
+  <div id="infobox">
+    Open JSON morphology file file <input type="file" id="fileInput" multiple>
+  </div>
 
-  Open JSON morphology file file <input type="file" id="fileInput" multiple>
+  <span id="infotext"></span>
 
   <script>
     var fileInput = document.getElementById('fileInput');
@@ -36,6 +59,16 @@
     // init the morpho viewer
     let threedeediv = document.getElementById( 'threedeediv' )
     let morphoViewer = new morphoviewer.MorphoViewer(threedeediv)
+
+    // callback associated with clicking on a section
+    morphoViewer.onRaycast(function(s){
+      if (!s) {
+        document.getElementById('infotext').innerHTML = ''
+        return
+      }
+
+      document.getElementById('infotext').innerHTML = `Morphology ID: ${s.getMorphology().getId()} - Section ID: ${s.getId()} - Number of children: ${s.getChildren().length} - length: ${Math.round(s.getSize())}µm - type: ${s.getTypename()}`
+    })
 
     // this callback is meant to tell when the mesh is ready and displayed
     // but also to retrieve its name in the case it was not given by the user and
@@ -80,7 +113,13 @@
     // Deals with the JSON content of the file
     // @param {String} buff - buff is a json string
     function readMorphoFile( buff ){
-      let rawMorphoObj = JSON.parse( buff )
+      let rawMorphoObj = null
+      try {
+        rawMorphoObj = JSON.parse( buff )
+      } catch (e) {
+        alert("File must be JSON")
+        return
+      }
 
       // this callback is meant to tell when the morpholoy is ready and displayed
       // but also to retrieve its name in the case it was not given by the user and
@@ -94,6 +133,7 @@
       morphoViewer.addMorphology (
         rawMorphoObj,
         {
+          //name: "SomeMorpho",
           focusOn: true, // do we want the camera to focus on this one when it's loaded?
           distance: 500,
           asPolyline: false, // with polylines of with cylinders?

@@ -109,7 +109,7 @@ Add a morphology to the collection so that it displays.
 
 **Parameters**
 
--   `morphoObj` **[Object][23]** describes the morphology of a neuron. This data comes straight from the JSON file
+-   `morphoObj` **([Object][23] | morphologycorejs.Morphology)** describes the morphology of a neuron. This data comes straight from the JSON file or it can also be a Morphology object from `morphologycorejs`
 -   `options` **[object][23]** the optional values
     -   `options.name` **[String][25]** The name to give to this morphology. Will be used as an identifier for several operations
     -   `options.asPolyline` **[Boolean][26]** if true: shows a polyline view. false: shows a tubular view (default: true)

@@ -23,7 +23,7 @@ class MorphoViewer {
 
   /**
    * Add a morphology to the collection so that it displays.
-   * @param {Object} morphoObj - describes the morphology of a neuron. This data comes straight from the JSON file
+   * @param {Object|morphologycorejs.Morphology} morphoObj - describes the morphology of a neuron. This data comes straight from the JSON file or it can also be a Morphology object from `morphologycorejs`
    * @param {object} options - the optional values
    * @param {String} options.name - The name to give to this morphology. Will be used as an identifier for several operations
    * @param {Boolean} options.asPolyline - if true: shows a polyline view. false: shows a tubular view (default: true)
@@ -32,9 +32,21 @@ class MorphoViewer {
    * @param {String} options.somaMode - "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
    */
   addMorphology (morphoObj, options) {
-    // create a mirphology object
-    let morphology = new morphologycorejs.Morphology()
-    morphology.buildFromRawMorphology( morphoObj )
+    // create a morphology object from the raw object
+    let morphology = null
+
+    // creates an auto name if none is giver
+    options.name = Tools.getOption( options, "name", "morpho_" + Math.round(Math.random() * 1000000).toString() )
+
+    if (morphoObj instanceof morphologycorejs.Morphology) {
+      morphology = morphoObj
+    } else {
+      morphology = new morphologycorejs.Morphology()
+      morphology.buildFromRawMorphology( morphoObj )
+    }
+
+    morphology.setId(options.name)
+
     let asPolyline = Tools.getOption(options, "asPolyline", true)
 
     if (asPolyline) {
@@ -82,6 +94,15 @@ class MorphoViewer {
    */
   setCameraFieldOfView (fov) {
     this._threeContext.setCameraFieldOfView(fov)
+  }
+
+
+  /**
+   * Define a callback associated with clicking on a section. The callback function
+   * is called with the `morphologycorejs.Section` instance as arguments (or `undefined`)
+   */
+  onRaycast (cb) {
+    this._threeContext.on("onRaycast", cb)
   }
 
 }

@@ -55,6 +55,45 @@ class MorphologyShapeBase extends THREE.Object3D {
       somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2])
       return somaSphere
 
+    // this is a 3-point soma, probably colinear
+    } else if (somaPoints.length === 3) {
+      /*
+      let radius = soma.getRadius()
+      let mat = new THREE.MeshPhongMaterial( {color: 0x000000, transparent: true, opacity:0.3} )
+
+      let c1 = Tools.makeCylinder(
+        new THREE.Vector3(...somaPoints[0]),
+        new THREE.Vector3(...somaPoints[1]),
+        radius,
+        radius,
+        false,
+        mat
+      )
+
+      let c2 = Tools.makeCylinder(
+        new THREE.Vector3(...somaPoints[1]),
+        new THREE.Vector3(...somaPoints[2]),
+        radius,
+        radius,
+        false,
+        mat
+      )
+
+      let somaCyl = new THREE.Object3D()
+      somaCyl.add(c1)
+      somaCyl.add(c2)
+      return somaCyl
+      */
+
+      let somaSphere = new THREE.Mesh(
+        new THREE.SphereGeometry( soma.getRadius(), 32, 32 ),
+        new THREE.MeshPhongMaterial( {color: 0x000000, transparent: true, opacity:0.3} )
+      )
+
+      somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2])
+      return somaSphere
+
+
     // when soma is multiple points
     } else if (somaPoints.length > 1) {
       // compute the average of the points
@@ -69,7 +108,6 @@ class MorphologyShapeBase extends THREE.Object3D {
           centerV
         );
         geometry.faces.push(new THREE.Face3(3 * i, 3 * i + 1, 3 * i + 2))
-
       }
 
       var somaMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial( {
@@ -96,19 +134,19 @@ class MorphologyShapeBase extends THREE.Object3D {
     let somaPoints = this._morpho.getSoma().getPoints()
     let somaMesh = null
 
-    // getting all the 1st points of orphan sections
-    let somaPolygonPoints = this._morpho.getOrphanSections().map(function(s){
-      let allPoints = s.getPoints()
-      let firstOne = allPoints[1]
-      return new THREE.Vector3(...firstOne)
-    })
-
-    // adding the points of the soma (adds values mostly if we a soma polygon)
-    for (let i=0; i<somaPoints.length; i++) {
-      somaPolygonPoints.push(new THREE.Vector3(...somaPoints[i]))
-    }
-
     try {
+      // getting all the 1st points of orphan sections
+      let somaPolygonPoints = this._morpho.getOrphanSections().map(function(s){
+        let allPoints = s.getPoints()
+        let firstOne = allPoints[1]
+        return new THREE.Vector3(...firstOne)
+      })
+
+      // adding the points of the soma (adds values mostly if we a soma polygon)
+      for (let i=0; i<somaPoints.length; i++) {
+        somaPolygonPoints.push(new THREE.Vector3(...somaPoints[i]))
+      }
+
       let geometry = new ConvexGeometry( somaPolygonPoints )
       let material = new THREE.MeshPhongMaterial( {
         color: 0x555555,
@@ -167,6 +205,14 @@ class MorphologyShapeBase extends THREE.Object3D {
     }
   }
 
+
+  /**
+   * Get the morphology object tied to _this_ mesh
+   * @return {morphologycorejs.Morphology} 
+   */
+  getMorphology () {
+    return this._morpho
+  }
 
 }
 
