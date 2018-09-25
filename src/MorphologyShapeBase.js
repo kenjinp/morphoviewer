@@ -201,14 +201,16 @@ class MorphologyShapeBase extends THREE.Object3D {
       lookat.applyAxisAngle ( new THREE.Vector3(0, 1, 0), Math.PI )
       return lookat
     } else {
-      return this.box.getCenter().clone()
+      let center = new THREE.Vector3()
+      this.box.getCenter(center)
+      return center
     }
   }
 
 
   /**
    * Get the morphology object tied to _this_ mesh
-   * @return {morphologycorejs.Morphology} 
+   * @return {morphologycorejs.Morphology}
    */
   getMorphology () {
     return this._morpho

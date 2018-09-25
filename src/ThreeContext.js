@@ -286,6 +286,16 @@ class ThreeContext extends EventManager {
     this._render()
   }
 
+  /**
+   * Get the png image data as base64, in order to later, export as a file
+   */
+  getSnapshotData () {
+    let strMime = "image/png"
+    //let strDownloadMime = "image/octet-stream"
+    let imgData = this._renderer.domElement.toDataURL(strMime)
+    //imgData.replace(strMime, strDownloadMime)
+    return imgData
+  }
 
   /**
    * Kills the scene, interaction, animation and reset all objects to null

@@ -38,10 +38,12 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
         this.add( section )
     }
 
-    // adding the soma as a sphere
+    // adding the soma, but sometimes, there is no soma data...
     let somaData = this._morpho.getSoma()
-    let somaShape = this._buildSoma(options)
-    this.add( somaShape )
+    if (somaData) {
+      let somaShape = this._buildSoma(options)
+      this.add( somaShape )
+    }
 
     // this is because the Allen ref is not oriented the same way as WebGL
     this.rotateX( Math.PI )

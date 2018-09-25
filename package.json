@@ -18,7 +18,7 @@
   "author": "Jonathan Lurie",
   "license": "MIT",
   "devDependencies": {
-    "codecutils": "^0.1.3",
+    "codecutils": "^0.1.4",
     "documentation": "^6.1.0",
     "morphologycorejs": "file:../morphologycorejs",
     "pako": "^1.0.6",

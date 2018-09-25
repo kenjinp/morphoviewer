@@ -30,9 +30,12 @@ class MorphologyPolyline extends MorphologyShapeBase {
       this.add( sectionPolyline )
     }
 
-    // adding the soma as a sphere
-    let somaShape = this._buildSoma(options)
-    this.add( somaShape )
+    // adding the soma mesh, but sometimes, there is no soma
+    let somaData = this._morpho.getSoma()
+    if (somaData) {
+      let somaShape = this._buildSoma(options)
+      this.add( somaShape )
+    }
 
     // this is because the Allen ref is not oriented the same way as WebGL
     this.rotateX( Math.PI )

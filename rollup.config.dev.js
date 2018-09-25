@@ -27,7 +27,6 @@ export default [
         preferBuiltins: false
       }),
       commonjs(),
-      //bundleWorker(),
       globals(),
       builtins()
     ]

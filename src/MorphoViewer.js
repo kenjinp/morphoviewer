@@ -105,6 +105,15 @@ class MorphoViewer {
     this._threeContext.on("onRaycast", cb)
   }
 
+
+  /**
+   *
+   */
+  takeScreenshot (filename="capture.png") {
+    let imageData = this._threeContext.getSnapshotData()
+    Tools.triggerDownload(imageData, filename)
+  }
+
 }
 
 export { MorphoViewer }
