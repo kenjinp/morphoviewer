@@ -10,7 +10,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c",
-    "dev": "serve . & rollup -w -c rollup.config.dev.js",
+    "dev": "serve -l 7654 . & rollup -w -c rollup.config.dev.js",
     "doc": "documentation build src/*.js -o ./doc/ -f html; documentation build src/*.js -f md > documentation.md",
     "lintfix": "standard --fix src/**/*.js",
     "lint": "standard src/**/*.js"
@@ -20,7 +20,7 @@
   "devDependencies": {
     "codecutils": "^0.1.4",
     "documentation": "^6.1.0",
-    "morphologycorejs": "file:../morphologycorejs",
+    "morphologycorejs": "^0.1.8",
     "pako": "^1.0.6",
     "rollup": "^0.57.0",
     "rollup-plugin-babel": "^3.0.2",
@@ -29,7 +29,7 @@
     "rollup-plugin-node-globals": "^1.1.0",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-uglify": "^6.0.0",
-    "serve": "^6.3.1",
+    "serve": "^10.0.2",
     "standard": "^11.0.1",
     "three": "^0.96.0"
   },
