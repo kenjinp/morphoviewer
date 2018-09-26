@@ -30,6 +30,8 @@ class MorphoViewer {
    * @param {Boolean} options.focusOn - if true, the camera will focus on this added morphology. If false, the camera will not change
    * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
    * @param {String} options.somaMode - "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
+   * @param {Function} options.onDone - callback when the morphology is displayed. Called with the name (given or generated) of the morphology
+   * @param {Number} options.distance - the distance between the camera and the soma. Only relevant if `onFocus` is `true`
    */
   addMorphology (morphoObj, options) {
     // create a morphology object from the raw object
@@ -94,6 +96,26 @@ class MorphoViewer {
    */
   setCameraFieldOfView (fov) {
     this._threeContext.setCameraFieldOfView(fov)
+  }
+
+
+  /**
+   * Make the camera look at the soma of a morphology (or the center of it's bounding box
+   * if the neuron does not have soma data)
+   * @param {String} name - the name of the neuron to focus on
+   * @param {Number} distance - distance from the soma center (in world space, most likely microns)
+   */
+  focusOnMorphology (name, distance) {
+    this._threeContext.focusOnMorphology(name, distance)
+  }
+
+
+  /**
+   * Make the camera focus on the given mesh
+   * @param {String} name - name of the mesh
+   */
+  focusOnMesh (name) {
+    this._threeContext.focusOnMesh(name)
   }
 
 

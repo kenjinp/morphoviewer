@@ -5,6 +5,8 @@ import { Tools } from './Tools.js'
 import { EventManager } from './EventManager.js'
 
 
+const DEFAULT_FOCUS_DISTANCE = 1000
+
 /**
  * ThreeContext creates a WebGL context using THREEjs. It also handle mouse control.
  * A MorphologyPolyline instance is added to it.
@@ -33,8 +35,9 @@ class ThreeContext extends EventManager {
     this._meshCollection = {}
 
     // init camera
-    this._camera = new THREE.PerspectiveCamera( 27, divObj.clientWidth / divObj.clientHeight, 1, 100000 )
-    this._camera.position.z = 1000
+    this._camera = new THREE.PerspectiveCamera( 27, divObj.clientWidth / divObj.clientHeight, 1, 1000000 )
+    this._camera.position.z = DEFAULT_FOCUS_DISTANCE
+
 
     // init scene
     this._scene = new THREE.Scene()
@@ -45,11 +48,12 @@ class ThreeContext extends EventManager {
 
     // adding some light
     let light1 = new THREE.DirectionalLight( 0xffffff, 0.5 )
-    light1.position.set( 1000, 1000, 1000 )
-    this._scene.add( light1 )
-    let light2 = new THREE.DirectionalLight( 0xffffff, 1.5 )
-    light2.position.set( -1000, -1000, -1000 )
-    this._scene.add( light2 )
+    light1.position.set( 0, 1000, 0 )
+    // adding the light to the camera ensure a constant lightin of the model
+    this._scene.add( this._camera )
+    this._camera.add(light1)
+
+
 
 
     this._renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true} )
@@ -80,7 +84,7 @@ class ThreeContext extends EventManager {
 
     // mouse controls
     this._controls = new TrackballControls( this._camera, this._renderer.domElement )
-    this._controls.rotateSpeed = 10
+    this._controls.rotateSpeed = 3
     this._controls.addEventListener( 'change', this._render.bind(this) )
 
     window.addEventListener( 'resize', function() {
@@ -122,6 +126,10 @@ class ThreeContext extends EventManager {
    * @param {Object} options - the options object
    * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
    * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Number} options.opacity - the opacity of the mesh
+   * @param {Number} options.color - the color of the mesh
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
    * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
    */
   addStlToMeshCollection (url, options) {
@@ -130,18 +138,23 @@ class ThreeContext extends EventManager {
     // generate a random name in case none was provided
     let name = Tools.getOption( options, "name", "mesh_" + Math.round(Math.random() * 1000000).toString() )
     let focusOn = Tools.getOption( options, "focusOn", true )
+    let color = Tools.getOption( options, "color", 0xDDDDDD )
+    let opacity = Tools.getOption( options, "opacity", 0.15 )
+    let wireframe = Tools.getOption( options, "wireframe", false )
+    let shininess = Tools.getOption( options, "shininess", 300 )
+    let doubleSide = Tools.getOption( options, "doubleSide", false )
 
     var loader = new STLLoader()
     //loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
     loader.load( url, function ( geometry ) {
       var material = new THREE.MeshPhongMaterial( {
           specular: 0xffffff,
-          shininess: 300,
-          side: 0,//THREE.DoubleSide,
-          color: 0xDDDDDD,
+          shininess: shininess,
+          side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
+          color: color,
           transparent: true,
-          opacity: 0.1,
-          wireframe: false
+          opacity: opacity,
+          wireframe: wireframe
         })
 
       geometry.computeBoundingSphere()
@@ -223,7 +236,7 @@ class ThreeContext extends EventManager {
     // generate a random name in case none was provided
     let name = options.name // set before
     let focusOn = Tools.getOption( options, "focusOn", true )
-    let focusDistance = Tools.getOption( options, "distance", 1000 )
+    let focusDistance = Tools.getOption( options, "distance", DEFAULT_FOCUS_DISTANCE )
 
     morphoMesh.userData["morphologyName"] = name
 
@@ -247,7 +260,7 @@ class ThreeContext extends EventManager {
    * Make the camera focus on a specific morphology
    * @param {String|null} name - name of the morphology in the collection. If `null`, takes the first one
    */
-  focusOnMorphology (name=null, distance=1000) {
+  focusOnMorphology (name=null, distance=DEFAULT_FOCUS_DISTANCE) {
     // if no name of morphology is provided, we take the first one
     if (!name) {
       let allNames = Object.keys( this._morphologyMeshCollection )
@@ -259,10 +272,6 @@ class ThreeContext extends EventManager {
     }
 
     let morpho = this._morphologyMeshCollection[ name ]
-    //let morphoBox = morpho.box
-    //let boxSize = new THREE.Vector3()
-    //morphoBox.getSize(boxSize)
-    //let averageSide = (boxSize.x + boxSize.y + boxSize.z) / 3
     let targetPoint = morpho.getTargetPoint()
     // we try to get pretty close to the soma, hence the averageSide/5
     this._camera.position.set(targetPoint.x, targetPoint.y, targetPoint.z - distance)
