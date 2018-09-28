@@ -33,9 +33,9 @@
     "serve": "^10.0.2"
   },
   "dependencies": {
-    "pako": "^1.0.6",
-    "morphologycorejs": "^0.1.8",
     "codecutils": "^0.1.3",
+    "morphologycorejs": "^0.1.10",
+    "pako": "^1.0.6",
     "three": "^0.96.0"
   },
   "eslintConfig": {
@@ -51,7 +51,6 @@
           "allowAfterThis": true
         }
       ],
-
       "max-len": [
         "warn",
         {
