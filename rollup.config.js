@@ -1,55 +1,86 @@
-import pkg from './package.json';
+import pkg from './package.json'
+import { terser } from "rollup-plugin-terser"
+import resolve from 'rollup-plugin-node-resolve'
+import builtins from 'rollup-plugin-node-builtins'
+import globals from 'rollup-plugin-node-globals'
+import commonjs from 'rollup-plugin-commonjs'
 
-import builtins from 'rollup-plugin-node-builtins';
-import globals from 'rollup-plugin-node-globals';
-import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
-//import { uglify } from 'rollup-plugin-uglify';
 
 export default [
-  // UMD bundle, prod-friendly but not minified
+  // UMD
+  {
+    input: pkg.entry,
+    output: {
+      file: pkg.unpkg,
+      name: pkg.name,
+      sourcemap: true,
+      format: 'umd',
+    },
+    plugins: [
+      resolve(),
+      commonjs({ include: 'node_modules/**' }),
+      globals(),
+      builtins()
+    ]
+  },
+
+  // UMD mini
+  {
+    input: pkg.entry,
+    output: {
+      file: pkg.unpkg.replace(".js", '.min.js'),
+      name: pkg.name,
+      sourcemap: false,
+      format: 'umd',
+    },
+    plugins: [
+      resolve(),
+      commonjs({ include: 'node_modules/**' }),
+      globals(),
+      builtins(),
+      terser()]
+  },
+
+  // ESMODULE
+   {
+     input: pkg.entry,
+     output: {
+       file: pkg.module,
+       name: pkg.name,
+       sourcemap: true,
+       format: 'es'
+     },
+     external: [
+       ...Object.keys(pkg.dependencies || {}),
+     ],
+     plugins: [
+       resolve(),
+       commonjs({ include: 'node_modules/**' }),
+       globals(),
+       builtins()
+     ]
+   },
+
+
+   // CJS
   {
     input: pkg.entry,
     output: {
       file: pkg.main,
       name: pkg.name,
-      sourcemap: false,
-      format: 'umd',
+      sourcemap: true,
+      format: 'cjs'
     },
+    external: [
+      ...Object.keys(pkg.dependencies || {}),
+    ],
 
     plugins: [
-      resolve({
-        preferBuiltins: false
-      }),
-      commonjs(),
+      resolve(),
+      commonjs({ include: 'node_modules/**' }),
       globals(),
-      builtins(),
-    ]
-  },
-
-
-
-  /*
-  // UMD bundle, prod-friendly but minified
-  {
-    input: pkg.entry,
-    output: {
-      file: pkg.min,
-      name: pkg.name,
-      sourcemap: false,
-      format: 'umd',
-    },
-
-    plugins: [
-      resolve({
-        preferBuiltins: false
-      }),
-      commonjs({ include: 'node_modules/**' }), // so Rollup can convert other modules to ES module
-      globals(),
-      builtins(),
-      //uglify()
+      builtins()
     ]
   }
-  */
 
-];
+]

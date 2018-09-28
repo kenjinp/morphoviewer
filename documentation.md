@@ -17,19 +17,21 @@
     -   [destroy][13]
     -   [getCameraFieldOfView][14]
     -   [setCameraFieldOfView][15]
-    -   [onRaycast][16]
-    -   [takeScreenshot][17]
--   [ThreeContext][18]
-    -   [getCameraFieldOfView][19]
-    -   [setCameraFieldOfView][20]
-    -   [addStlToMeshCollection][21]
-    -   [addMorphology][22]
-    -   [focusOnMorphology][23]
-    -   [focusOnMesh][24]
-    -   [getSnapshotData][25]
-    -   [destroy][26]
--   [Tools][27]
-    -   [getOption][28]
+    -   [focusOnMorphology][16]
+    -   [focusOnMesh][17]
+    -   [onRaycast][18]
+    -   [takeScreenshot][19]
+-   [ThreeContext][20]
+    -   [getCameraFieldOfView][21]
+    -   [setCameraFieldOfView][22]
+    -   [addStlToMeshCollection][23]
+    -   [addMorphology][24]
+    -   [focusOnMorphology][25]
+    -   [focusOnMesh][26]
+    -   [getSnapshotData][27]
+    -   [destroy][28]
+-   [Tools][29]
+    -   [getOption][30]
 
 ## EventManager
 
@@ -42,8 +44,8 @@ Define an event, with a name associated with a function
 
 **Parameters**
 
--   `eventName` **[String][29]** Name to give to the event
--   `callback` **[Function][30]** function associated to the even
+-   `eventName` **[String][31]** Name to give to the event
+-   `callback` **[Function][32]** function associated to the even
 
 ## MorphologyPolycylinder
 
@@ -57,14 +59,14 @@ It's constructor
 
 **Parameters**
 
--   `morpho` **[Object][31]** raw object that describes a morphology (usually straight from a JSON file)
--   `options` **[object][31]** the option object
+-   `morpho` **[Object][33]** raw object that describes a morphology (usually straight from a JSON file)
+-   `options` **[object][33]** the option object
 
 ## mergeBufferGeometries
 
 **Parameters**
 
--   `geometries` **[Array][32]&lt;THREE.BufferGeometry>** 
+-   `geometries` **[Array][34]&lt;THREE.BufferGeometry>** 
 -   `useGroups`  
 
 Returns **THREE.BufferGeometry** 
@@ -73,7 +75,7 @@ Returns **THREE.BufferGeometry**
 
 **Parameters**
 
--   `attributes` **[Array][32]&lt;THREE.BufferAttribute>** 
+-   `attributes` **[Array][34]&lt;THREE.BufferAttribute>** 
 
 Returns **THREE.BufferAttribute** 
 
@@ -92,7 +94,7 @@ It's constructor
 **Parameters**
 
 -   `morpho` **Morphology** raw object that describes a morphology (usually straight from a JSON file)
--   `options` **[object][31]** the option object
+-   `options` **[object][33]** the option object
 
 ## MorphologyShapeBase
 
@@ -103,8 +105,8 @@ It handles the common features, mainly related to soma creation
 
 **Parameters**
 
--   `morpho` **[Object][31]** raw object that describes a morphology (usually straight from a JSON file)
--   `options` **[object][31]** the option object
+-   `morpho` **[Object][33]** raw object that describes a morphology (usually straight from a JSON file)
+-   `options` **[object][33]** the option object
 
 ### getTargetPoint
 
@@ -112,7 +114,7 @@ Get the point to target when using the method lookAt. If the soma is valid,
 this will be the center of the soma. If no soma is valid, it will be the
 center of the box
 
-Returns **[Array][32]** center with the shape [x: Number, y: Number, z: Number]
+Returns **[Array][34]** center with the shape [x: Number, y: Number, z: Number]
 
 ### getMorphology
 
@@ -135,13 +137,18 @@ Add a morphology to the collection so that it displays.
 
 **Parameters**
 
--   `morphoObj` **([Object][31] | morphologycorejs.Morphology)** describes the morphology of a neuron. This data comes straight from the JSON file or it can also be a Morphology object from `morphologycorejs`
--   `options` **[object][31]** the optional values
-    -   `options.name` **[String][29]** The name to give to this morphology. Will be used as an identifier for several operations
-    -   `options.asPolyline` **[Boolean][33]** if true: shows a polyline view. false: shows a tubular view (default: true)
-    -   `options.focusOn` **[Boolean][33]** if true, the camera will focus on this added morphology. If false, the camera will not change
-    -   `options.color` **[Number][34]** the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
-    -   `options.somaMode` **[String][29]** "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
+-   `morphoObj` **([Object][33] | morphologycorejs.Morphology)** describes the morphology of a neuron.
+    This data comes straight from the JSON file or it can also be a Morphology object from `morphologycorejs`
+-   `options` **[object][33]** the optional values
+    -   `options.name` **[String][31]** The name to give to this morphology. Will be used as an identifier for several operations
+    -   `options.asPolyline` **[Boolean][35]** if true: shows a polyline view. false: shows a tubular view (default: true)
+    -   `options.focusOn` **[Boolean][35]** if true, the camera will focus on this added morphology. If false, the camera will not change
+    -   `options.color` **[Number][36]** the color of the polyline.
+        If provided, the whole neurone will be of the given color, if not provided,
+        the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+    -   `options.somaMode` **[String][31]** "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
+    -   `options.onDone` **[Function][32]** callback when the morphology is displayed. Called with the name (given or generated) of the morphology
+    -   `options.distance` **[Number][36]** the distance between the camera and the soma. Only relevant if `onFocus` is `true`
 
 ### addStlToMeshCollection
 
@@ -149,10 +156,10 @@ Adds a mesh from its URL. The mesh has to encoded into the STL format
 
 **Parameters**
 
--   `url` **[String][29]** the url of the STL file
--   `options` **[Object][31]** the options object
-    -   `options.name` **[String][29]** optional name of this mesh (useful for further operations such as centering the view)
-    -   `options.focusOn` **[Boolean][33]** if true, the camera will focus on this added mesh. If false, the camera will not change
+-   `url` **[String][31]** the url of the STL file
+-   `options` **[Object][33]** the options object
+    -   `options.name` **[String][31]** optional name of this mesh (useful for further operations such as centering the view)
+    -   `options.focusOn` **[Boolean][35]** if true, the camera will focus on this added mesh. If false, the camera will not change
 
 ### destroy
 
@@ -162,7 +169,7 @@ Kill all to save up memory, stop the annimation, removes events, delete the canv
 
 Get the field of view angle of the camera, in degrees
 
-Returns **[Number][34]** 
+Returns **[Number][36]** 
 
 ### setCameraFieldOfView
 
@@ -170,7 +177,25 @@ Define the camera field of view, in degrees
 
 **Parameters**
 
--   `fov` **[Number][34]** the fov
+-   `fov` **[Number][36]** the fov
+
+### focusOnMorphology
+
+Make the camera look at the soma of a morphology (or the center of it's bounding box
+if the neuron does not have soma data)
+
+**Parameters**
+
+-   `name` **[String][31]** the name of the neuron to focus on
+-   `distance` **[Number][36]** distance from the soma center (in world space, most likely microns)
+
+### focusOnMesh
+
+Make the camera focus on the given mesh
+
+**Parameters**
+
+-   `name` **[String][31]** name of the mesh
 
 ### onRaycast
 
@@ -185,7 +210,7 @@ is called with the `morphologycorejs.Section` instance as arguments (or `undefin
 
 **Parameters**
 
--   `filename`   (optional, default `"capture.png"`)
+-   `filename`   (optional, default `'capture.png'`)
 
 ## ThreeContext
 
@@ -198,14 +223,15 @@ An event can be associated to a ThreeContext instance: `onRaycast` with the meth
 
 **Parameters**
 
--   `divObj` **DONObject** the div object as a DOM element. Will be used to host the WebGL context
+-   `divObj` **DONObject** the div object as a DOM element.
+    Will be used to host the WebGL context
     created by THREE (optional, default `null`)
 
 ### getCameraFieldOfView
 
 Get the field of view angle of the camera, in degrees
 
-Returns **[Number][34]** 
+Returns **[Number][36]** 
 
 ### setCameraFieldOfView
 
@@ -213,7 +239,7 @@ Define the camera field of view, in degrees
 
 **Parameters**
 
--   `fov` **[Number][34]** the fov
+-   `fov` **[Number][36]** the fov
 
 ### addStlToMeshCollection
 
@@ -221,11 +247,14 @@ Adds a mesh from its URL. The mesh has to encoded into the STL format
 
 **Parameters**
 
--   `url` **[String][29]** the url of the STL file
--   `options` **[Object][31]** the options object
-    -   `options.name` **[String][29]** optional name of this mesh (useful for further operations such as centering the view)
-    -   `options.focusOn` **[Boolean][33]** if true, the camera will focus on this added mesh. If false, the camera will not change
-    -   `options.onDone` **[Function][30]** callback to be called when the mesh is added. Called with the name of the mesh in argument
+-   `url` **[String][31]** the url of the STL file
+-   `options` **[Object][33]** the options object
+    -   `options.name` **[String][31]** optional name of this mesh (useful for further operations such as centering the view)
+    -   `options.focusOn` **[Boolean][35]** if true, the camera will focus on this added mesh. If false, the camera will not change
+    -   `options.opacity` **[Number][36]** the opacity of the mesh
+    -   `options.color` **[Number][36]** the color of the mesh
+    -   `options.wireframe` **[Number][36]** only the wireframe will display if true. If false, the regular mesh will show-   @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+    -   `options.onDone` **[Function][32]** callback to be called when the mesh is added. Called with the name of the mesh in argument
 
 ### addMorphology
 
@@ -235,10 +264,10 @@ ThreeContext.
 **Parameters**
 
 -   `morphoMesh` **MorphoPolyline** a MorphoPolyline instance
--   `options` **[Object][31]** the option object
-    -   `options.name` **[String][29]** the identifier to give to the MorphoPolyline instance within a local collection
-    -   `options.focusOn` **[Boolean][33]** if true, the camera will focus on this added morphology. If false, the camera will not change
-    -   `options.onDone` **[Function][30]** callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
+-   `options` **[Object][33]** the option object
+    -   `options.name` **[String][31]** the identifier to give to the MorphoPolyline instance within a local collection
+    -   `options.focusOn` **[Boolean][35]** if true, the camera will focus on this added morphology. If false, the camera will not change
+    -   `options.onDone` **[Function][32]** callback to be called when the morphology polyline is added. Called with the name of the morpho in argument
 
 ### focusOnMorphology
 
@@ -246,8 +275,8 @@ Make the camera focus on a specific morphology
 
 **Parameters**
 
--   `name` **([String][29] | null)** name of the morphology in the collection. If `null`, takes the first one (optional, default `null`)
--   `distance`   (optional, default `1000`)
+-   `name` **([String][31] | null)** name of the morphology in the collection. If `null`, takes the first one (optional, default `null`)
+-   `distance`   (optional, default `DEFAULT_FOCUS_DISTANCE`)
 
 ### focusOnMesh
 
@@ -255,7 +284,7 @@ Focus on a mesh, given its name
 
 **Parameters**
 
--   `name` **[string][29]** name of the mesh to focus on
+-   `name` **[string][31]** name of the mesh to focus on
 
 ### getSnapshotData
 
@@ -277,8 +306,8 @@ the `optionObj`
 
 **Parameters**
 
--   `optionObj` **[Object][31]** the object that contain the options
--   `optionName` **[String][29]** the name of the option desired, attribute of `optionObj`
+-   `optionObj` **[Object][33]** the object that contain the options
+-   `optionName` **[String][31]** the name of the option desired, attribute of `optionObj`
 -   `optionDefaultValue` **any** default values to be returned in case `optionName` is not an attribute of `optionObj`
 
 [1]: #eventmanager
@@ -311,40 +340,44 @@ the `optionObj`
 
 [15]: #setcamerafieldofview
 
-[16]: #onraycast
+[16]: #focusonmorphology
 
-[17]: #takescreenshot
+[17]: #focusonmesh
 
-[18]: #threecontext
+[18]: #onraycast
 
-[19]: #getcamerafieldofview-1
+[19]: #takescreenshot
 
-[20]: #setcamerafieldofview-1
+[20]: #threecontext
 
-[21]: #addstltomeshcollection-1
+[21]: #getcamerafieldofview-1
 
-[22]: #addmorphology-1
+[22]: #setcamerafieldofview-1
 
-[23]: #focusonmorphology
+[23]: #addstltomeshcollection-1
 
-[24]: #focusonmesh
+[24]: #addmorphology-1
 
-[25]: #getsnapshotdata
+[25]: #focusonmorphology-1
 
-[26]: #destroy-1
+[26]: #focusonmesh-1
 
-[27]: #tools
+[27]: #getsnapshotdata
 
-[28]: #getoption
+[28]: #destroy-1
 
-[29]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+[29]: #tools
 
-[30]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+[30]: #getoption
 
-[31]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+[31]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
-[32]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[32]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
 
-[33]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[33]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-[34]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[34]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[35]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[36]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number

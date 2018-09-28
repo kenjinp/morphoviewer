@@ -14,8 +14,8 @@ class EventManager {
   /**
    * Constructor
    */
-  constructor () {
-    this._events = {} 
+  constructor() {
+    this._events = {}
   }
 
 
@@ -24,31 +24,29 @@ class EventManager {
    * @param  {String} eventName - Name to give to the event
    * @param  {Function} callback - function associated to the even
    */
-  on (eventName, callback) {
-    if( typeof callback === "function" ){
+  on(eventName, callback) {
+    if (typeof callback === 'function') {
       if (!(eventName in this._events)) {
-        this._events[ eventName ] = []
+        this._events[eventName] = []
       }
-      this._events[ eventName ].push( callback )
+      this._events[eventName].push(callback)
     } else {
       console.warn('The callback must be of type Function')
     }
   }
 
 
-  emit (eventName, args=[]) {
+  emit(eventName, args = []) {
     // the event must exist and be non null
-    if( (eventName in this._events) && (this._events[eventName].length>0) ){
-      let events = this._events[ eventName ]
-      for (let i=0; i<events.length; i++) {
+    if ((eventName in this._events) && (this._events[eventName].length > 0)) {
+      const events = this._events[eventName]
+      for (let i = 0; i < events.length; i += 1) {
         events[i](...args)
       }
     } else {
-      console.warn('No function associated to the event ' + eventName )
+      console.warn(`No function associated to the event ${eventName}`)
     }
   }
-
-
 }
 
-export { EventManager }
+export default EventManager

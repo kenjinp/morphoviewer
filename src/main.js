@@ -1,1 +1,5 @@
-export { MorphoViewer } from './MorphoViewer.js'
+import MorphoViewer from './MorphoViewer'
+
+export default ({
+  MorphoViewer,
+})

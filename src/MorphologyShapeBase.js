@@ -1,6 +1,6 @@
-import * as THREE from "three"
-import { Tools } from './Tools.js'
-import { ConvexGeometry } from './thirdparty/ConvexGeometry.js'
+import * as THREE from 'three'
+import Tools from './Tools'
+import ConvexGeometry from './thirdparty/ConvexGeometry'
 
 
 /**
@@ -8,22 +8,24 @@ import { ConvexGeometry } from './thirdparty/ConvexGeometry.js'
  * It handles the common features, mainly related to soma creation
  */
 class MorphologyShapeBase extends THREE.Object3D {
-
   /**
    * @constructor
    * Builds a moprho as a polyline
    * @param {Object} morpho - raw object that describes a morphology (usually straight from a JSON file)
    * @param {object} options - the option object
-   * @param {Number} options.color - the color of the polyline. If provided, the whole neurone will be of the given color, if not provided, the axon will be green, the basal dendrite will be red and the apical dendrite will be green
+   * @param {Number} options.color - the color of the polyline.
+   * If provided, the whole neurone will be of the given color, if not provided,
+   * the axon will be green, the basal dendrite will be red and the apical dendrite will be green
    */
-  constructor (morpho, options) {
+  constructor(morpho, options) {
     super()
 
+    this.userData.morphologyName = options.name
     this._pointToTarget = null
     this._morpho = morpho
 
     // fetch the optional color
-    let color = Tools.getOption(options, 'color', null)
+    const color = Tools.getOption(options, 'color', null)
 
     // simple color lookup, so that every section type is shown in a different color
     this._sectionColors = {
@@ -31,7 +33,6 @@ class MorphologyShapeBase extends THREE.Object3D {
       basal_dendrite: color || 0xff1111,
       apical_dendrite: color || 0xf442ad,
     }
-
   }
 
 
@@ -42,21 +43,21 @@ class MorphologyShapeBase extends THREE.Object3D {
    * @return {THREE.Mesh} the soma mesh
    */
   _buildSomaDefault() {
-    let soma = this._morpho.getSoma()
-    let somaPoints = soma.getPoints()
+    const soma = this._morpho.getSoma()
+    const somaPoints = soma.getPoints()
 
     // case when soma is a single point
     if (somaPoints.length === 1) {
-      let somaSphere = new THREE.Mesh(
-        new THREE.SphereGeometry( soma.getRadius(), 32, 32 ),
-        new THREE.MeshPhongMaterial( {color: 0x000000, transparent: true, opacity:0.3} )
+      const somaSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(soma.getRadius(), 32, 32),
+        new THREE.MeshPhongMaterial({ color: 0x000000, transparent: true, opacity: 0.3 }),
       )
 
       somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2])
       return somaSphere
 
     // this is a 3-point soma, probably colinear
-    } else if (somaPoints.length === 3) {
+    } if (somaPoints.length === 3) {
       /*
       let radius = soma.getRadius()
       let mat = new THREE.MeshPhongMaterial( {color: 0x000000, transparent: true, opacity:0.3} )
@@ -85,9 +86,9 @@ class MorphologyShapeBase extends THREE.Object3D {
       return somaCyl
       */
 
-      let somaSphere = new THREE.Mesh(
-        new THREE.SphereGeometry( soma.getRadius(), 32, 32 ),
-        new THREE.MeshPhongMaterial( {color: 0x000000, transparent: true, opacity:0.3} )
+      const somaSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(soma.getRadius(), 32, 32),
+        new THREE.MeshPhongMaterial({ color: 0x000000, transparent: true, opacity: 0.3 }),
       )
 
       somaSphere.position.set(somaPoints[0][0], somaPoints[0][1], somaPoints[0][2])
@@ -95,32 +96,35 @@ class MorphologyShapeBase extends THREE.Object3D {
 
 
     // when soma is multiple points
-    } else if (somaPoints.length > 1) {
+    } if (somaPoints.length > 1) {
       // compute the average of the points
-      let center = soma.getCenter()
-      let centerV = new THREE.Vector3( center[0] ,center[1], center[2])
-      var geometry = new THREE.Geometry();
+      const center = soma.getCenter()
+      const centerV = new THREE.Vector3(center[0], center[1], center[2])
+      const geometry = new THREE.Geometry()
 
-      for (let i=0; i<somaPoints.length; i++) {
+      for (let i = 0; i < somaPoints.length; i += 1) {
         geometry.vertices.push(
           new THREE.Vector3(somaPoints[i][0], somaPoints[i][1], somaPoints[i][2]),
-          new THREE.Vector3(somaPoints[(i+1)%somaPoints.length][0], somaPoints[(i+1)%somaPoints.length][1], somaPoints[(i+1)%somaPoints.length][2]),
-          centerV
-        );
+          new THREE.Vector3(
+            somaPoints[(i + 1) % somaPoints.length][0],
+            somaPoints[(i + 1) % somaPoints.length][1],
+            somaPoints[(i + 1) % somaPoints.length][2],
+          ),
+          centerV,
+        )
         geometry.faces.push(new THREE.Face3(3 * i, 3 * i + 1, 3 * i + 2))
       }
 
-      var somaMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial( {
+      const somaMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
         color: 0x000000,
         transparent: true,
-        opacity:0.3,
-        side: THREE.DoubleSide
-      } ))
+        opacity: 0.3,
+        side: THREE.DoubleSide,
+      }))
       return somaMesh
-
-    } else {
-      console.warn("No soma defined")
     }
+    console.warn('No soma defined')
+    return null
   }
 
 
@@ -130,39 +134,37 @@ class MorphologyShapeBase extends THREE.Object3D {
    * sections + the points available in the soma description
    * @return {THREE.Mesh} the soma mesh
    */
-  _buildSomaFromOrphanSections () {
-    let somaPoints = this._morpho.getSoma().getPoints()
+  _buildSomaFromOrphanSections() {
+    const somaPoints = this._morpho.getSoma().getPoints()
     let somaMesh = null
 
     try {
       // getting all the 1st points of orphan sections
-      let somaPolygonPoints = this._morpho.getOrphanSections().map(function(s){
-        let allPoints = s.getPoints()
-        let firstOne = allPoints[1]
+      const somaPolygonPoints = this._morpho.getOrphanSections().map((s) => {
+        const allPoints = s.getPoints()
+        const firstOne = allPoints[1]
         return new THREE.Vector3(...firstOne)
       })
 
       // adding the points of the soma (adds values mostly if we a soma polygon)
-      for (let i=0; i<somaPoints.length; i++) {
+      for (let i = 0; i < somaPoints.length; i += 1) {
         somaPolygonPoints.push(new THREE.Vector3(...somaPoints[i]))
       }
 
-      let geometry = new ConvexGeometry( somaPolygonPoints )
-      let material = new THREE.MeshPhongMaterial( {
+      const geometry = new ConvexGeometry(somaPolygonPoints)
+      const material = new THREE.MeshPhongMaterial({
         color: 0x555555,
         transparent: true,
-        opacity:0.7,
-        side: THREE.DoubleSide
+        opacity: 0.7,
+        side: THREE.DoubleSide,
       })
-      somaMesh = new THREE.Mesh( geometry, material )
+      somaMesh = new THREE.Mesh(geometry, material)
       return somaMesh
     } catch (e) {
-      console.warn("Attempted to build a soma from orphan section points but failed. Back to the regular version.")
+      console.warn('Attempted to build a soma from orphan section points but failed. Back to the regular version.')
       return this._buildSomaDefault()
     }
   }
-
-
 
 
   /**
@@ -171,13 +173,13 @@ class MorphologyShapeBase extends THREE.Object3D {
    * @param {Object} options - The option object
    * @param {String|null} options.somaMode - "default" to display only the soma data or "fromOrphanSections" to build a soma using the orphan sections
    */
-  _buildSoma (options) {
+  _buildSoma(options) {
     this._pointToTarget = this._morpho.getSoma().getCenter()
     // can be 'default' or 'fromOrphanSections'
-    let buildMode = Tools.getOption(options, 'somaMode', null)
+    const buildMode = Tools.getOption(options, 'somaMode', null)
     let somaMesh = null
 
-    if (buildMode === "fromOrphanSections") {
+    if (buildMode === 'fromOrphanSections') {
       somaMesh = this._buildSomaFromOrphanSections()
     } else {
       somaMesh = this._buildSomaDefault()
@@ -193,18 +195,17 @@ class MorphologyShapeBase extends THREE.Object3D {
    * center of the box
    * @return {Array} center with the shape [x: Number, y: Number, z: Number]
    */
-  getTargetPoint () {
+  getTargetPoint() {
     if (this._pointToTarget) {
       // rotate this because Allen needs it (just like the sections)
-      let lookat = new THREE.Vector3(this._pointToTarget[0], this._pointToTarget[1], this._pointToTarget[2])
-      lookat.applyAxisAngle ( new THREE.Vector3(1, 0, 0), Math.PI )
-      lookat.applyAxisAngle ( new THREE.Vector3(0, 1, 0), Math.PI )
+      const lookat = new THREE.Vector3(this._pointToTarget[0], this._pointToTarget[1], this._pointToTarget[2])
+      lookat.applyAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI)
+      lookat.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
       return lookat
-    } else {
-      let center = new THREE.Vector3()
-      this.box.getCenter(center)
-      return center
     }
+    const center = new THREE.Vector3()
+    this.box.getCenter(center)
+    return center
   }
 
 
@@ -212,11 +213,10 @@ class MorphologyShapeBase extends THREE.Object3D {
    * Get the morphology object tied to _this_ mesh
    * @return {morphologycorejs.Morphology}
    */
-  getMorphology () {
+  getMorphology() {
     return this._morpho
   }
-
 }
 
 
-export { MorphologyShapeBase }
+export default MorphologyShapeBase
