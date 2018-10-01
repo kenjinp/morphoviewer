@@ -933,6 +933,16 @@ class EventManager {
   }
 }
 
+/*
+  * @author Kai Salmen / https://kaisalmen.de
+  * Development repository: https://github.com/kaisalmen/WWOBJLoader
+  */
+
+/*
+  * @author Kai Salmen / https://kaisalmen.de
+  * Development repository: https://github.com/kaisalmen/WWOBJLoader
+  */
+
 // eslint thing
 /* global window requestAnimationFrame cancelAnimationFrame */
 
@@ -1024,9 +1034,16 @@ class ThreeContext extends EventManager {
       that._render();
     }, false);
 
+    this._testObjMesh();
+
     this._render();
     this._animate();
   }
+
+
+  _testObjMesh () {
+  }
+
 
 
   /**

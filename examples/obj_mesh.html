@@ -1,0 +1,83 @@
+<html>
+<head>
+  <title>OBJ meshes</title>
+
+  <style>
+    body {
+      margin: 0
+    }
+
+    #fileInput {
+      position: absolute;
+      top:0;
+      left: 0;
+    }
+
+    #threedeediv {
+      width: 100vw;
+      height: 100vh;
+    }
+
+  </style>
+
+</head>
+<body>
+  <script src="js/filepuller.min.js"></script>
+  <script src="../dist/morphoviewer.js"></script>
+
+  <div id="threedeediv"></div>
+
+
+  Open OBJ mesh file <input type="file" id="fileInput" multiple>
+
+  <script>
+    let fileInput = document.getElementById('fileInput')
+    let focusOnFirst = true
+
+
+    // init the morpho viewer
+    let threedeediv = document.getElementById( 'threedeediv' )
+    let morphoViewer = new morphoviewer.MorphoViewer(threedeediv)
+
+    morphoViewer.onRaycast( function(name) {
+      alert("This is the mesh " + name)
+    })
+
+
+    // manages file input
+    fileInput.addEventListener('change', function(e) {
+      var files = e.target.files;
+
+      if( !files.length ){
+        return;
+      }
+
+
+      for(let i=0; i<files.length; i++){
+        filepuller.read( files[i], true, function(error, data){
+          if (error) {
+            console.warn("ERROR" + error)
+            return
+          }
+          readFile(data)
+        })
+      }
+    })
+
+
+    function readFile( buff ){
+      morphoViewer.addObjToMeshCollection(buff, {
+        wireframe: false,
+        focusOn: focusOnFirst,
+        onDone: function(name) {
+          console.log("Added mesh " + name)
+        }
+
+      })
+      focusOnFirst = false
+    }
+
+  </script>
+
+</body>
+</html>

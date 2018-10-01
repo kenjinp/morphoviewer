@@ -38,11 +38,22 @@ The `options` object may have the following properties:
 
 
 ## Add a mesh
-For the moment, only STL files are compatible. On the contrary to morphologies, the `URL` of the mesh must be provided.
+For the moment, only STL and OBJ files are compatible.
+
+For STL meshesm a URL must be provided:
 ```javascript
 // optional: we load a brain model. Last param is for focusing on it
 morphoViewer.addStlToMeshCollection(
   '../data/meshes/mask_smooth_simple.stl',
+  options
+)
+```
+
+Alternatively, a OBJ mesh can be added, using the string contained by the OBJ file:
+
+```javascript
+morphoViewer.addObjToMeshCollection(
+  objStr,
   options
 )
 ```

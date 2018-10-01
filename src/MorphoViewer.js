@@ -69,6 +69,11 @@ class MorphoViewer {
    * @param {Object} options - the options object
    * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
    * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Number} options.opacity - the opacity of the mesh
+   * @param {Number} options.color - the color of the mesh
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
    */
   addStlToMeshCollection(url, options) {
     this._threeContext.addStlToMeshCollection(url, options)
@@ -131,12 +136,51 @@ class MorphoViewer {
 
 
   /**
-   *
+   * Take a screenshot of the webgl context and dowload the png image
+   * @param {String} filename - name under which we want to dowload this file (optional)
    */
   takeScreenshot(filename = 'capture.png') {
     const imageData = this._threeContext.getSnapshotData()
     Tools.triggerDownload(imageData, filename)
   }
+
+
+  /**
+   * Adds a OBJ mesh to the scene
+   * @param {String} objStr - the string from the OBJ file
+   * @param {Object} options - the options object
+   * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
+   * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Number} options.opacity - the opacity of the mesh
+   * @param {Number} options.color - the color of the mesh
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
+   */
+  addObjToMeshCollection (objStr, options) {
+    this._threeContext.addObjToMeshCollection(objStr, options)
+  }
+
+
+  /**
+   * Show the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  showMesh (name) {
+    this._threeContext.showMesh(name)
+  }
+
+
+  /**
+   * Hide the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  hideMesh (name) {
+    this._threeContext.hideMesh(name)
+  }
+
+
+
 }
 
 export default MorphoViewer

@@ -3,6 +3,7 @@ import TrackballControls from './thirdparty/TrackballControls'
 import STLLoader from './thirdparty/STLLoader'
 import Tools from './Tools'
 import EventManager from './EventManager'
+import ObjParser from 'parse-wavefront-obj'
 
 // eslint thing
 /* global window requestAnimationFrame cancelAnimationFrame */
@@ -24,7 +25,6 @@ class ThreeContext extends EventManager {
    */
   constructor(divObj = null) {
     super()
-
     const that = this
 
     if (!divObj) {
@@ -95,9 +95,17 @@ class ThreeContext extends EventManager {
       that._render()
     }, false)
 
+    this._testObjMesh()
+
     this._render()
     this._animate()
   }
+
+
+  _testObjMesh () {
+    OBJLoader2
+  }
+
 
 
   /**
@@ -129,7 +137,7 @@ class ThreeContext extends EventManager {
    * @param {Number} options.opacity - the opacity of the mesh
    * @param {Number} options.color - the color of the mesh
    * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
-   * * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
    * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
    */
   addStlToMeshCollection(url, options) {
@@ -138,24 +146,11 @@ class ThreeContext extends EventManager {
     // generate a random name in case none was provided
     const name = Tools.getOption(options, 'name', `mesh_${Math.round(Math.random() * 1000000).toString()}`)
     const focusOn = Tools.getOption(options, 'focusOn', true)
-    const color = Tools.getOption(options, 'color', 0xDDDDDD)
-    const opacity = Tools.getOption(options, 'opacity', 0.15)
-    const wireframe = Tools.getOption(options, 'wireframe', false)
-    const shininess = Tools.getOption(options, 'shininess', 300)
-    const doubleSide = Tools.getOption(options, 'doubleSide', false)
 
     const loader = new STLLoader()
     // loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
     loader.load(url, (geometry) => {
-      const material = new THREE.MeshPhongMaterial({
-        specular: 0xffffff,
-        shininess,
-        side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
-        color,
-        transparent: true,
-        opacity,
-        wireframe,
-      })
+      const material = this._buildMeshMaterialFromOptions(options)
 
       geometry.computeBoundingSphere()
 
@@ -163,6 +158,8 @@ class ThreeContext extends EventManager {
         geometry,
         material,
       )
+
+      mesh.userData.name = name
 
       that._scene.add(mesh)
       that._meshCollection[name] = mesh
@@ -173,9 +170,101 @@ class ThreeContext extends EventManager {
       const onDone = Tools.getOption(options, 'onDone', null)
       if (onDone) {
         onDone(name)
-        that._render()
       }
+      this._render()
     })
+  }
+
+
+  /**
+   * @private
+   * Generates a phong material based on the options provided
+   */
+  _buildMeshMaterialFromOptions (options) {
+    const color = Tools.getOption(options, 'color', Math.floor(Math.random() * 0xFFFFFF))
+    const opacity = Tools.getOption(options, 'opacity', 0.15)
+    const wireframe = Tools.getOption(options, 'wireframe', false)
+    const shininess = Tools.getOption(options, 'shininess', 300)
+    const doubleSide = Tools.getOption(options, 'doubleSide', false)
+
+    const material = new THREE.MeshPhongMaterial({
+      specular: 0xffffff,
+      shininess,
+      side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
+      color,
+      transparent: true,
+      opacity,
+      wireframe,
+    })
+
+    return material
+  }
+
+
+  /**
+   * Add a OBJ mesh to the scene
+   * @param {String} objStr - string that comes from the obj file
+   * @param {Object} options - the options object
+   * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
+   * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Number} options.opacity - the opacity of the mesh
+   * @param {Number} options.color - the color of the mesh
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
+   */
+  addObjToMeshCollection (objStr, options) {
+    // generate a random name in case none was provided
+    const name = Tools.getOption(options, 'name', `mesh_${Math.round(Math.random() * 1000000).toString()}`)
+    const focusOn = Tools.getOption(options, 'focusOn', true)
+    let meshData = ObjParser( objStr )
+
+    // Usually 3 because polygons are triangle, but OBJ allows different
+    const verticesPerPolygon = meshData.cells[0].length
+    let indices = new Uint32Array( verticesPerPolygon * meshData.cells.length )
+    let positions = new Float32Array( 3 * meshData.positions.length )
+
+    // flattening the indices
+    for (let i=0; i<meshData.cells.length; i += 1) {
+      let newIndex = i * verticesPerPolygon
+      for (let ii=0; ii<verticesPerPolygon; ii += 1) {
+        indices[newIndex + ii] = meshData.cells[i][ii]
+      }
+    }
+
+    // flatening the positions
+    for (let p=0; p<meshData.positions.length; p += 1) {
+      let newIndex = p * 3
+      positions[newIndex] = meshData.positions[p][0]
+      positions[newIndex+1] = meshData.positions[p][1]
+      positions[newIndex+2] = meshData.positions[p][2]
+    }
+
+    var geometry = new THREE.BufferGeometry()
+    geometry.setIndex( new THREE.BufferAttribute( indices, 1 ) )
+    geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, verticesPerPolygon ) )
+    geometry.computeBoundingSphere()
+    geometry.computeVertexNormals()
+
+    let material = this._buildMeshMaterialFromOptions(options)
+
+    const mesh = new THREE.Mesh(
+      geometry,
+      material,
+    )
+
+    mesh.userData.name = name
+    this._scene.add(mesh)
+    this._meshCollection[name] = mesh
+
+    if (focusOn) this.focusOnMesh(name)
+
+    // call a callback if declared, with the name of the mesh in arg
+    const onDone = Tools.getOption(options, 'onDone', null)
+    if (onDone) {
+      onDone(name)
+    }
+    this._render()
   }
 
 
@@ -209,10 +298,17 @@ class ThreeContext extends EventManager {
       // console.log(this._morphologyMeshCollection)
       const sectionMesh = intersects[0].object
 
-      if ('sectionId' in sectionMesh.userData) {
+      // if it's the section of a morphology
+      if ("sectionId" in sectionMesh.userData) {
         const { sectionId } = sectionMesh.userData
         const morphologyObj = sectionMesh.parent.getMorphology()
         this.emit('onRaycast', [morphologyObj._sections[sectionId]])
+
+      // If it's another mesh
+      } else if ("name" in sectionMesh.userData) {
+        this.emit('onRaycast', [sectionMesh.userData.name])
+
+      // here we are raycasting something that is not identified
       } else {
         this.emit('onRaycast', [null])
       }
@@ -300,6 +396,31 @@ class ThreeContext extends EventManager {
     // imgData.replace(strMime, strDownloadMime)
     return imgData
   }
+
+
+  /**
+   * Show the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  showMesh (name) {
+    if (name in this._meshCollection) {
+      this._meshCollection[name].material.visible = true
+      this._render()
+    }
+  }
+
+
+  /**
+   * Hide the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  hideMesh (name) {
+    if (name in this._meshCollection) {
+      this._meshCollection[name].material.visible = false
+      this._render()
+    }
+  }
+
 
   /**
    * Kills the scene, interaction, animation and reset all objects to null

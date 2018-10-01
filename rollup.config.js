@@ -24,6 +24,7 @@ export default [
     ]
   },
 
+  /*
   // UMD mini
   {
     input: pkg.entry,
@@ -82,5 +83,5 @@ export default [
       builtins()
     ]
   }
-
+  */
 ]
