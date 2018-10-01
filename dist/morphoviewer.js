@@ -602,7 +602,6 @@
   var index = ({
     Morphology,
   });
-  //# sourceMappingURL=morphologycorejs.js.map
 
   // Polyfills
 
