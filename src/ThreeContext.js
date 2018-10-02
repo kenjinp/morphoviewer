@@ -50,8 +50,8 @@ class ThreeContext extends EventManager {
     // this._scene.add( axesHelper )
 
     // adding some light
-    const light1 = new THREE.DirectionalLight(0xffffff, 0.5)
-    light1.position.set(0, 1000, 0)
+    const light1 = new THREE.DirectionalLight(0xffffff, 0.8)
+    //light1.position.set(0, 1000, 0)
     // adding the light to the camera ensure a constant lightin of the model
     this._scene.add(this._camera)
     this._camera.add(light1)

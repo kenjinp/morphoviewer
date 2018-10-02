@@ -55306,8 +55306,8 @@
       // this._scene.add( axesHelper )
 
       // adding some light
-      const light1 = new DirectionalLight(0xffffff, 0.5);
-      light1.position.set(0, 1000, 0);
+      const light1 = new DirectionalLight(0xffffff, 0.8);
+      //light1.position.set(0, 1000, 0)
       // adding the light to the camera ensure a constant lightin of the model
       this._scene.add(this._camera);
       this._camera.add(light1);
@@ -56705,13 +56705,6 @@
   ConvexBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
   ConvexBufferGeometry.prototype.constructor = ConvexBufferGeometry;
 
-  // export
-
-  var ConvexGeometry$1 = ({
-    ConvexGeometry,
-    ConvexBufferGeometry,
-  })
-
   /**
    * This is the base class for `MorphologyPolyline` and `MorphologyPolycylinder`.
    * It handles the common features, mainly related to soma creation
@@ -56860,7 +56853,7 @@
           somaPolygonPoints.push(new Vector3(...somaPoints[i]));
         }
 
-        const geometry = new ConvexGeometry$1(somaPolygonPoints);
+        const geometry = new ConvexBufferGeometry(somaPolygonPoints);
         const material = new MeshPhongMaterial({
           color: 0x555555,
           transparent: true,

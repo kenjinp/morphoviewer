@@ -66,8 +66,12 @@ ConvexBufferGeometry.prototype = Object.create(THREE.BufferGeometry.prototype)
 ConvexBufferGeometry.prototype.constructor = ConvexBufferGeometry
 
 // export
-
+/*
 export default ({
   ConvexGeometry,
   ConvexBufferGeometry,
 })
+*/
+
+
+export { ConvexGeometry, ConvexBufferGeometry }

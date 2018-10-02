@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import Tools from './Tools'
-import ConvexGeometry from './thirdparty/ConvexGeometry'
+import { ConvexBufferGeometry } from './thirdparty/ConvexGeometry'
 
 
 /**
@@ -151,7 +151,7 @@ class MorphologyShapeBase extends THREE.Object3D {
         somaPolygonPoints.push(new THREE.Vector3(...somaPoints[i]))
       }
 
-      const geometry = new ConvexGeometry(somaPolygonPoints)
+      const geometry = new ConvexBufferGeometry(somaPolygonPoints)
       const material = new THREE.MeshPhongMaterial({
         color: 0x555555,
         transparent: true,

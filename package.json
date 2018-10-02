@@ -1,6 +1,6 @@
 {
   "name": "morphoviewer",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "A 3D neuron morphology viewer for the web",
   "repository": "jonathanlurie/morphoviewer",
   "moduleName": "morphoviewer",
