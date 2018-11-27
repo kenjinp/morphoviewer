@@ -55067,7 +55067,7 @@
       const offsetPosition = new Matrix4();// a matrix to fix pivot position
       offsetPosition.setPosition(position);
 
-      const cylinder = new CylinderBufferGeometry(rStart, rEnd, distance, 8, 1, openEnd);
+      const cylinder = new CylinderBufferGeometry(rStart, rEnd, distance, 32, 1, openEnd);
       const orientation = new Matrix4();// a new orientation matrix to offset pivot
       orientation.multiply(offsetPosition); // test to add offset
       const offsetRotation = new Matrix4();// a matrix to fix pivot rotation

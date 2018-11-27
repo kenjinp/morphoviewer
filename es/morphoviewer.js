@@ -1,5 +1,6 @@
-import { PerspectiveCamera, Scene, AmbientLight, DirectionalLight, WebGLRenderer, Raycaster, Vector2, MeshPhongMaterial, DoubleSide, FrontSide, Mesh, Vector3, Quaternion, EventDispatcher, DefaultLoadingManager, FileLoader, BufferGeometry, BufferAttribute, Float32BufferAttribute, LoaderUtils, Matrix4, CylinderBufferGeometry, Box3, LineBasicMaterial, Geometry, Line, Object3D, SphereGeometry, Face3, MeshBasicMaterial, Line3, Plane, Triangle } from 'three';
+import { PerspectiveCamera, Scene, AmbientLight, DirectionalLight, WebGLRenderer, Raycaster, Vector2, Mesh, MeshPhongMaterial, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, Vector3, Quaternion, EventDispatcher, DefaultLoadingManager, FileLoader, Float32BufferAttribute, LoaderUtils, Matrix4, CylinderBufferGeometry, Box3, LineBasicMaterial, Geometry, Line, Object3D, SphereGeometry, Face3, MeshBasicMaterial, Line3, Plane, Triangle } from 'three';
 import pako from 'pako';
+import ObjParser from 'parse-wavefront-obj';
 import morphologycorejs from 'morphologycorejs';
 
 /*
@@ -860,7 +861,7 @@ class Tools {
     const offsetPosition = new Matrix4();// a matrix to fix pivot position
     offsetPosition.setPosition(position);
 
-    const cylinder = new CylinderBufferGeometry(rStart, rEnd, distance, 8, 1, openEnd);
+    const cylinder = new CylinderBufferGeometry(rStart, rEnd, distance, 32, 1, openEnd);
     const orientation = new Matrix4();// a new orientation matrix to offset pivot
     orientation.multiply(offsetPosition); // test to add offset
     const offsetRotation = new Matrix4();// a matrix to fix pivot rotation
@@ -933,16 +934,6 @@ class EventManager {
   }
 }
 
-/*
-  * @author Kai Salmen / https://kaisalmen.de
-  * Development repository: https://github.com/kaisalmen/WWOBJLoader
-  */
-
-/*
-  * @author Kai Salmen / https://kaisalmen.de
-  * Development repository: https://github.com/kaisalmen/WWOBJLoader
-  */
-
 // eslint thing
 /* global window requestAnimationFrame cancelAnimationFrame */
 
@@ -963,7 +954,6 @@ class ThreeContext extends EventManager {
    */
   constructor(divObj = null) {
     super();
-
     const that = this;
 
     if (!divObj) {
@@ -989,8 +979,8 @@ class ThreeContext extends EventManager {
     // this._scene.add( axesHelper )
 
     // adding some light
-    const light1 = new DirectionalLight(0xffffff, 0.5);
-    light1.position.set(0, 1000, 0);
+    const light1 = new DirectionalLight(0xffffff, 0.8);
+    //light1.position.set(0, 1000, 0)
     // adding the light to the camera ensure a constant lightin of the model
     this._scene.add(this._camera);
     this._camera.add(light1);
@@ -1075,7 +1065,7 @@ class ThreeContext extends EventManager {
    * @param {Number} options.opacity - the opacity of the mesh
    * @param {Number} options.color - the color of the mesh
    * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
-   * * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
    * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
    */
   addStlToMeshCollection(url, options) {
@@ -1084,24 +1074,11 @@ class ThreeContext extends EventManager {
     // generate a random name in case none was provided
     const name = Tools.getOption(options, 'name', `mesh_${Math.round(Math.random() * 1000000).toString()}`);
     const focusOn = Tools.getOption(options, 'focusOn', true);
-    const color = Tools.getOption(options, 'color', 0xDDDDDD);
-    const opacity = Tools.getOption(options, 'opacity', 0.15);
-    const wireframe = Tools.getOption(options, 'wireframe', false);
-    const shininess = Tools.getOption(options, 'shininess', 300);
-    const doubleSide = Tools.getOption(options, 'doubleSide', false);
 
     const loader = new STLLoader();
     // loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
     loader.load(url, (geometry) => {
-      const material = new MeshPhongMaterial({
-        specular: 0xffffff,
-        shininess,
-        side: doubleSide ? DoubleSide : FrontSide,
-        color,
-        transparent: true,
-        opacity,
-        wireframe,
-      });
+      const material = this._buildMeshMaterialFromOptions(options);
 
       geometry.computeBoundingSphere();
 
@@ -1109,6 +1086,8 @@ class ThreeContext extends EventManager {
         geometry,
         material,
       );
+
+      mesh.userData.name = name;
 
       that._scene.add(mesh);
       that._meshCollection[name] = mesh;
@@ -1119,9 +1098,101 @@ class ThreeContext extends EventManager {
       const onDone = Tools.getOption(options, 'onDone', null);
       if (onDone) {
         onDone(name);
-        that._render();
       }
+      this._render();
     });
+  }
+
+
+  /**
+   * @private
+   * Generates a phong material based on the options provided
+   */
+  _buildMeshMaterialFromOptions (options) {
+    const color = Tools.getOption(options, 'color', Math.floor(Math.random() * 0xFFFFFF));
+    const opacity = Tools.getOption(options, 'opacity', 0.15);
+    const wireframe = Tools.getOption(options, 'wireframe', false);
+    const shininess = Tools.getOption(options, 'shininess', 300);
+    const doubleSide = Tools.getOption(options, 'doubleSide', false);
+
+    const material = new MeshPhongMaterial({
+      specular: 0xffffff,
+      shininess,
+      side: doubleSide ? DoubleSide : FrontSide,
+      color,
+      transparent: true,
+      opacity,
+      wireframe,
+    });
+
+    return material
+  }
+
+
+  /**
+   * Add a OBJ mesh to the scene
+   * @param {String} objStr - string that comes from the obj file
+   * @param {Object} options - the options object
+   * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
+   * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Number} options.opacity - the opacity of the mesh
+   * @param {Number} options.color - the color of the mesh
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
+   */
+  addObjToMeshCollection (objStr, options) {
+    // generate a random name in case none was provided
+    const name = Tools.getOption(options, 'name', `mesh_${Math.round(Math.random() * 1000000).toString()}`);
+    const focusOn = Tools.getOption(options, 'focusOn', true);
+    let meshData = ObjParser( objStr );
+
+    // Usually 3 because polygons are triangle, but OBJ allows different
+    const verticesPerPolygon = meshData.cells[0].length;
+    let indices = new Uint32Array( verticesPerPolygon * meshData.cells.length );
+    let positions = new Float32Array( 3 * meshData.positions.length );
+
+    // flattening the indices
+    for (let i=0; i<meshData.cells.length; i += 1) {
+      let newIndex = i * verticesPerPolygon;
+      for (let ii=0; ii<verticesPerPolygon; ii += 1) {
+        indices[newIndex + ii] = meshData.cells[i][ii];
+      }
+    }
+
+    // flatening the positions
+    for (let p=0; p<meshData.positions.length; p += 1) {
+      let newIndex = p * 3;
+      positions[newIndex] = meshData.positions[p][0];
+      positions[newIndex+1] = meshData.positions[p][1];
+      positions[newIndex+2] = meshData.positions[p][2];
+    }
+
+    var geometry = new BufferGeometry();
+    geometry.setIndex( new BufferAttribute( indices, 1 ) );
+    geometry.addAttribute( 'position', new BufferAttribute( positions, verticesPerPolygon ) );
+    geometry.computeBoundingSphere();
+    geometry.computeVertexNormals();
+
+    let material = this._buildMeshMaterialFromOptions(options);
+
+    const mesh = new Mesh(
+      geometry,
+      material,
+    );
+
+    mesh.userData.name = name;
+    this._scene.add(mesh);
+    this._meshCollection[name] = mesh;
+
+    if (focusOn) this.focusOnMesh(name);
+
+    // call a callback if declared, with the name of the mesh in arg
+    const onDone = Tools.getOption(options, 'onDone', null);
+    if (onDone) {
+      onDone(name);
+    }
+    this._render();
   }
 
 
@@ -1155,10 +1226,17 @@ class ThreeContext extends EventManager {
       // console.log(this._morphologyMeshCollection)
       const sectionMesh = intersects[0].object;
 
-      if ('sectionId' in sectionMesh.userData) {
+      // if it's the section of a morphology
+      if ("sectionId" in sectionMesh.userData) {
         const { sectionId } = sectionMesh.userData;
         const morphologyObj = sectionMesh.parent.getMorphology();
         this.emit('onRaycast', [morphologyObj._sections[sectionId]]);
+
+      // If it's another mesh
+      } else if ("name" in sectionMesh.userData) {
+        this.emit('onRaycast', [sectionMesh.userData.name]);
+
+      // here we are raycasting something that is not identified
       } else {
         this.emit('onRaycast', [null]);
       }
@@ -1246,6 +1324,31 @@ class ThreeContext extends EventManager {
     // imgData.replace(strMime, strDownloadMime)
     return imgData
   }
+
+
+  /**
+   * Show the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  showMesh (name) {
+    if (name in this._meshCollection) {
+      this._meshCollection[name].material.visible = true;
+      this._render();
+    }
+  }
+
+
+  /**
+   * Hide the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  hideMesh (name) {
+    if (name in this._meshCollection) {
+      this._meshCollection[name].material.visible = false;
+      this._render();
+    }
+  }
+
 
   /**
    * Kills the scene, interaction, animation and reset all objects to null
@@ -2275,13 +2378,6 @@ function ConvexBufferGeometry(points) {
 ConvexBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
 ConvexBufferGeometry.prototype.constructor = ConvexBufferGeometry;
 
-// export
-
-var ConvexGeometry$1 = ({
-  ConvexGeometry,
-  ConvexBufferGeometry,
-})
-
 /**
  * This is the base class for `MorphologyPolyline` and `MorphologyPolycylinder`.
  * It handles the common features, mainly related to soma creation
@@ -2430,7 +2526,7 @@ class MorphologyShapeBase extends Object3D {
         somaPolygonPoints.push(new Vector3(...somaPoints[i]));
       }
 
-      const geometry = new ConvexGeometry$1(somaPolygonPoints);
+      const geometry = new ConvexBufferGeometry(somaPolygonPoints);
       const material = new MeshPhongMaterial({
         color: 0x555555,
         transparent: true,
@@ -3085,6 +3181,11 @@ class MorphoViewer {
    * @param {Object} options - the options object
    * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
    * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Number} options.opacity - the opacity of the mesh
+   * @param {Number} options.color - the color of the mesh
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
    */
   addStlToMeshCollection(url, options) {
     this._threeContext.addStlToMeshCollection(url, options);
@@ -3147,12 +3248,51 @@ class MorphoViewer {
 
 
   /**
-   *
+   * Take a screenshot of the webgl context and dowload the png image
+   * @param {String} filename - name under which we want to dowload this file (optional)
    */
   takeScreenshot(filename = 'capture.png') {
     const imageData = this._threeContext.getSnapshotData();
     Tools.triggerDownload(imageData, filename);
   }
+
+
+  /**
+   * Adds a OBJ mesh to the scene
+   * @param {String} objStr - the string from the OBJ file
+   * @param {Object} options - the options object
+   * @param {String} options.name - optional name of this mesh (useful for further operations such as centering the view)
+   * @param {Boolean} options.focusOn - if true, the camera will focus on this added mesh. If false, the camera will not change
+   * @param {Number} options.opacity - the opacity of the mesh
+   * @param {Number} options.color - the color of the mesh
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
+   * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
+   */
+  addObjToMeshCollection (objStr, options) {
+    this._threeContext.addObjToMeshCollection(objStr, options);
+  }
+
+
+  /**
+   * Show the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  showMesh (name) {
+    this._threeContext.showMesh(name);
+  }
+
+
+  /**
+   * Hide the given mesh from the colelction
+   * @param {String} name - Name of the mesh
+   */
+  hideMesh (name) {
+    this._threeContext.hideMesh(name);
+  }
+
+
+
 }
 
 var main = ({

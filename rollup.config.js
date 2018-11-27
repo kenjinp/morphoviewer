@@ -1,10 +1,10 @@
-import pkg from './package.json'
-import { terser } from "rollup-plugin-terser"
+
+import { terser } from 'rollup-plugin-terser'
 import resolve from 'rollup-plugin-node-resolve'
 import builtins from 'rollup-plugin-node-builtins'
 import globals from 'rollup-plugin-node-globals'
 import commonjs from 'rollup-plugin-commonjs'
-
+import pkg from './package.json'
 
 export default [
   // UMD
@@ -20,16 +20,16 @@ export default [
       resolve(),
       commonjs({ include: 'node_modules/**' }),
       globals(),
-      builtins()
-    ]
+      builtins(),
+    ],
   },
 
-  /*
+
   // UMD mini
   {
     input: pkg.entry,
     output: {
-      file: pkg.unpkg.replace(".js", '.min.js'),
+      file: pkg.unpkg.replace('.js', '.min.js'),
       name: pkg.name,
       sourcemap: false,
       format: 'umd',
@@ -39,30 +39,30 @@ export default [
       commonjs({ include: 'node_modules/**' }),
       globals(),
       builtins(),
-      terser()]
+      terser()],
   },
 
   // ESMODULE
-   {
-     input: pkg.entry,
-     output: {
-       file: pkg.module,
-       name: pkg.name,
-       sourcemap: true,
-       format: 'es'
-     },
-     external: [
-       ...Object.keys(pkg.dependencies || {}),
-     ],
-     plugins: [
-       resolve(),
-       commonjs({ include: 'node_modules/**' }),
-       globals(),
-       builtins()
-     ]
-   },
+  {
+    input: pkg.entry,
+    output: {
+      file: pkg.module,
+      name: pkg.name,
+      sourcemap: true,
+      format: 'es',
+    },
+    external: [
+      ...Object.keys(pkg.dependencies || {}),
+    ],
+    plugins: [
+      resolve(),
+      commonjs({ include: 'node_modules/**' }),
+      globals(),
+      builtins(),
+    ],
+  },
 
-
+  /*
    // CJS
   {
     input: pkg.entry,

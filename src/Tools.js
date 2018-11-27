@@ -38,7 +38,7 @@ class Tools {
     const offsetPosition = new THREE.Matrix4()// a matrix to fix pivot position
     offsetPosition.setPosition(position)
 
-    const cylinder = new THREE.CylinderBufferGeometry(rStart, rEnd, distance, 8, 1, openEnd)
+    const cylinder = new THREE.CylinderBufferGeometry(rStart, rEnd, distance, 32, 1, openEnd)
     const orientation = new THREE.Matrix4()// a new orientation matrix to offset pivot
     orientation.multiply(offsetPosition) // test to add offset
     const offsetRotation = new THREE.Matrix4()// a matrix to fix pivot rotation
