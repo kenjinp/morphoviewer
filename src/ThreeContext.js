@@ -46,7 +46,7 @@ class ThreeContext extends EventManager {
     this._scene = new THREE.Scene()
     this._scene.add(new THREE.AmbientLight(0x444444))
 
-    // var axesHelper = new THREE.AxesHelper( 1000 )
+    // let axesHelper = new THREE.AxesHelper( 1000 )
     // this._scene.add( axesHelper )
 
     // adding some light
@@ -245,6 +245,10 @@ class ThreeContext extends EventManager {
     geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, verticesPerPolygon ) )
     geometry.computeBoundingSphere()
     geometry.computeVertexNormals()
+
+    // Allen atlas being inverted
+    geometry.rotateX(Math.PI)
+    geometry.rotateY(Math.PI)
 
     let material = this._buildMeshMaterialFromOptions(options)
 
