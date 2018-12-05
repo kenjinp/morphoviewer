@@ -999,9 +999,9 @@ class ThreeContext extends EventManager {
 
     function onMouseMove(event) {
       const elem = that._renderer.domElement;
-      const relX = event.pageX - elem.offsetLeft;
-      const relY = event.pageY - elem.offsetTop;
-
+      const rect = elem.getBoundingClientRect();
+      const relX = event.clientX - rect.left;
+      const relY = event.clientY - rect.top;
       that._raycastMouse.x = (relX / that._renderer.domElement.clientWidth) * 2 - 1;
       that._raycastMouse.y = -(relY / that._renderer.domElement.clientHeight) * 2 + 1;
     }
