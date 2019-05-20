@@ -1,24 +1,17 @@
-import morphologycorejs from 'morphologycorejs'
-import ThreeContext from './ThreeContext'
-import MorphologyPolyline from './MorphologyPolyline'
-import MorphologyPolycylinder from './MorphologyPolycylinder'
-import Tools from './Tools'
-
+import morphologycorejs from 'morphologycorejs';
+import ThreeContext from './ThreeContext';
+import MorphologyPolyline from './MorphologyPolyline';
+import MorphologyPolycylinder from './MorphologyPolycylinder';
+import Tools from './Tools';
 
 /**
-* The MorphoViewer class is the entry point object of the MorphoViewer project
-* and is the only object the user should be dealing with.
-*/
+ * The MorphoViewer class is the entry point object of the MorphoViewer project
+ * and is the only object the user should be dealing with.
+ */
 class MorphoViewer {
-  constructor(divObj = null) {
-    if (!divObj) {
-      console.error('MorphoViewer needs a div object to display WebGL context.')
-      return
-    }
-
-    this._threeContext = new ThreeContext(divObj)
+  constructor() {
+    this._threeContext = new ThreeContext()
   }
-
 
   /**
    * Add a morphology to the collection so that it displays.
@@ -40,7 +33,11 @@ class MorphoViewer {
     let morphology = null
 
     // creates an auto name if none is giver
-    options.name = Tools.getOption(options, 'name', `morpho_${Math.round(Math.random() * 1000000).toString()}`)
+    options.name = Tools.getOption(
+      options,
+      'name',
+      `morpho_${Math.round(Math.random() * 1000000).toString()}`,
+    )
 
     if (morphoObj instanceof morphologycorejs.Morphology) {
       morphology = morphoObj
@@ -62,7 +59,6 @@ class MorphoViewer {
     }
   }
 
-
   /**
    * Adds a mesh from its URL. The mesh has to encoded into the STL format
    * @param {String} url - the url of the STL file
@@ -79,14 +75,12 @@ class MorphoViewer {
     this._threeContext.addStlToMeshCollection(url, options)
   }
 
-
   /**
    * Kill all to save up memory, stop the annimation, removes events, delete the canvas
    */
   destroy() {
     this._threeContext.destroy()
   }
-
 
   /**
    * Get the field of view angle of the camera, in degrees
@@ -96,7 +90,6 @@ class MorphoViewer {
     return this._threeContext.getCameraFieldOfView()
   }
 
-
   /**
    * Define the camera field of view, in degrees
    * @param {Number} fov - the fov
@@ -104,7 +97,6 @@ class MorphoViewer {
   setCameraFieldOfView(fov) {
     this._threeContext.setCameraFieldOfView(fov)
   }
-
 
   /**
    * Make the camera look at the soma of a morphology (or the center of it's bounding box
@@ -116,7 +108,6 @@ class MorphoViewer {
     this._threeContext.focusOnMorphology(name, distance)
   }
 
-
   /**
    * Make the camera focus on the given mesh
    * @param {String} name - name of the mesh
@@ -124,7 +115,6 @@ class MorphoViewer {
   focusOnMesh(name) {
     this._threeContext.focusOnMesh(name)
   }
-
 
   /**
    * Define a callback associated with clicking on a section. The callback function
@@ -134,16 +124,15 @@ class MorphoViewer {
     this._threeContext.on('onRaycast', cb)
   }
 
-
   /**
    * Take a screenshot of the webgl context and dowload the png image
    * @param {String} filename - name under which we want to dowload this file (optional)
    */
   takeScreenshot(filename = 'capture.png') {
     const imageData = this._threeContext.getSnapshotData()
-    Tools.triggerDownload(imageData, filename)
+    return imageData
+    // Tools.triggerDownload(imageData, filename)
   }
-
 
   /**
    * Adds a OBJ mesh to the scene
@@ -157,30 +146,25 @@ class MorphoViewer {
    * @param {Number} options.wireframe - only the wireframe will display if true. If false, the regular mesh will show
    * @param {Function} options.onDone - callback to be called when the mesh is added. Called with the name of the mesh in argument
    */
-  addObjToMeshCollection (objStr, options) {
+  addObjToMeshCollection(objStr, options) {
     this._threeContext.addObjToMeshCollection(objStr, options)
   }
-
 
   /**
    * Show the given mesh from the colelction
    * @param {String} name - Name of the mesh
    */
-  showMesh (name) {
+  showMesh(name) {
     this._threeContext.showMesh(name)
   }
-
 
   /**
    * Hide the given mesh from the colelction
    * @param {String} name - Name of the mesh
    */
-  hideMesh (name) {
+  hideMesh(name) {
     this._threeContext.hideMesh(name)
   }
-
-
-
 }
 
 export default MorphoViewer
