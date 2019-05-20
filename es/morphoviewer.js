@@ -2,7 +2,7 @@ import pako from 'pako';
 import { DefaultLoadingManager, FileLoader, BufferGeometry, BufferAttribute, Vector3, Float32BufferAttribute, LoaderUtils, Matrix4, CylinderBufferGeometry, Box3, LineBasicMaterial, Geometry, Line, Object3D, Mesh, SphereGeometry, MeshPhongMaterial, Face3, MeshBasicMaterial, DoubleSide, Line3, Plane, Triangle, Vector2 } from 'three';
 import { PerspectiveCamera, Scene, AmbientLight, DirectionalLight, CanvasRenderer, Raycaster, Vector2 as Vector2$1, Mesh as Mesh$1, MeshPhongMaterial as MeshPhongMaterial$1, DoubleSide as DoubleSide$1, FrontSide, BufferGeometry as BufferGeometry$1, BufferAttribute as BufferAttribute$1 } from 'three-canvas-renderer';
 import ObjParser from 'parse-wavefront-obj';
-import { Canvas } from 'canvas';
+import 'canvas';
 import raf from 'raf';
 import morphologycorejs from 'morphologycorejs';
 
@@ -410,10 +410,10 @@ class ThreeContext extends EventManager {
    * Will be used to host the WebGL context
    * created by THREE
    */
-  constructor() {
+  constructor(canvas) {
     super();
-    const w = 600;
-    const h = 600;
+
+    this._canvas = canvas;
 
     this._requestFrameId = null;
 
@@ -438,14 +438,13 @@ class ThreeContext extends EventManager {
     this._scene.add(this._camera);
     this._camera.add(light1);
 
-    this._canvas = new Canvas(w, h);
     // @ts-ignore
     this._canvas.style = {}; // dummy shim to prevent errors during render.setSize
 
     this._renderer = new CanvasRenderer({
       canvas: this._canvas,
-      alpha: true,
-      preserveDrawingBuffer: true,
+      alpha: true
+      // preserveDrawingBuffer: true,
     });
 
     this._renderer.setClearColor(0xffffff, 0);
@@ -455,6 +454,15 @@ class ThreeContext extends EventManager {
     // all the necessary for raycasting
     this._raycaster = new Raycaster();
     this._raycastMouse = new Vector2$1();
+
+    // function onMouseMove(event) {
+    //   const elem = that._renderer.domElement
+    //   const rect = elem.getBoundingClientRect()
+    //   const relX = event.clientX - rect.left
+    //   const relY = event.clientY - rect.top
+    //   that._raycastMouse.x =        (relX / that._renderer.domElement.clientWidth) * 2 - 1
+    //   that._raycastMouse.y =        -(relY / that._renderer.domElement.clientHeight) * 2 + 1
+    // }
 
     // this._renderer.domElement.addEventListener('mousemove', onMouseMove, false)
     // this._renderer.domElement.addEventListener(
@@ -499,7 +507,7 @@ class ThreeContext extends EventManager {
    * @return {Number}
    */
   getCameraFieldOfView() {
-    return this._camera.fov
+    return this._camera.fov;
   }
 
   /**
@@ -530,14 +538,14 @@ class ThreeContext extends EventManager {
     // generate a random name in case none was provided
     const name = Tools.getOption(
       options,
-      'name',
-      `mesh_${Math.round(Math.random() * 1000000).toString()}`,
+      "name",
+      `mesh_${Math.round(Math.random() * 1000000).toString()}`
     );
-    const focusOn = Tools.getOption(options, 'focusOn', true);
+    const focusOn = Tools.getOption(options, "focusOn", true);
 
     const loader = new STLLoader();
     // loader.load( '../data/meshes/mask_smooth_simple.stl', function ( geometry ) {
-    loader.load(url, (geometry) => {
+    loader.load(url, geometry => {
       const material = this._buildMeshMaterialFromOptions(options);
 
       geometry.computeBoundingSphere();
@@ -552,7 +560,7 @@ class ThreeContext extends EventManager {
       if (focusOn) that.focusOnMesh(name);
 
       // call a callback if declared, with the name of the mesh in arg
-      const onDone = Tools.getOption(options, 'onDone', null);
+      const onDone = Tools.getOption(options, "onDone", null);
       if (onDone) {
         onDone(name);
       }
@@ -567,13 +575,13 @@ class ThreeContext extends EventManager {
   _buildMeshMaterialFromOptions(options) {
     const color = Tools.getOption(
       options,
-      'color',
-      Math.floor(Math.random() * 0xffffff),
+      "color",
+      Math.floor(Math.random() * 0xffffff)
     );
-    const opacity = Tools.getOption(options, 'opacity', 0.15);
-    const wireframe = Tools.getOption(options, 'wireframe', false);
-    const shininess = Tools.getOption(options, 'shininess', 300);
-    const doubleSide = Tools.getOption(options, 'doubleSide', false);
+    const opacity = Tools.getOption(options, "opacity", 0.15);
+    const wireframe = Tools.getOption(options, "wireframe", false);
+    const shininess = Tools.getOption(options, "shininess", 300);
+    const doubleSide = Tools.getOption(options, "doubleSide", false);
 
     const material = new MeshPhongMaterial$1({
       specular: 0xffffff,
@@ -582,10 +590,10 @@ class ThreeContext extends EventManager {
       color,
       transparent: true,
       opacity,
-      wireframe,
+      wireframe
     });
 
-    return material
+    return material;
   }
 
   /**
@@ -604,10 +612,10 @@ class ThreeContext extends EventManager {
     // generate a random name in case none was provided
     const name = Tools.getOption(
       options,
-      'name',
-      `mesh_${Math.round(Math.random() * 1000000).toString()}`,
+      "name",
+      `mesh_${Math.round(Math.random() * 1000000).toString()}`
     );
-    const focusOn = Tools.getOption(options, 'focusOn', true);
+    const focusOn = Tools.getOption(options, "focusOn", true);
     let meshData = ObjParser(objStr);
 
     // Usually 3 because polygons are triangle, but OBJ allows different
@@ -634,8 +642,8 @@ class ThreeContext extends EventManager {
     const geometry = new BufferGeometry$1();
     geometry.setIndex(new BufferAttribute$1(indices, 1));
     geometry.addAttribute(
-      'position',
-      new BufferAttribute$1(positions, verticesPerPolygon),
+      "position",
+      new BufferAttribute$1(positions, verticesPerPolygon)
     );
     geometry.computeBoundingSphere();
     geometry.computeVertexNormals();
@@ -655,7 +663,7 @@ class ThreeContext extends EventManager {
     if (focusOn) this.focusOnMesh(name);
 
     // call a callback if declared, with the name of the mesh in arg
-    const onDone = Tools.getOption(options, 'onDone', null);
+    const onDone = Tools.getOption(options, "onDone", null);
     if (onDone) {
       onDone(name);
     }
@@ -687,7 +695,7 @@ class ThreeContext extends EventManager {
     // calculate objects intersecting the picking ray
     const intersects = this._raycaster.intersectObjects(
       this._scene.children,
-      true,
+      true
     );
 
     if (intersects.length) {
@@ -695,18 +703,18 @@ class ThreeContext extends EventManager {
       const sectionMesh = intersects[0].object;
 
       // if it's the section of a morphology
-      if ('sectionId' in sectionMesh.userData) {
+      if ("sectionId" in sectionMesh.userData) {
         const { sectionId } = sectionMesh.userData;
         const morphologyObj = sectionMesh.parent.getMorphology();
-        this.emit('onRaycast', [morphologyObj._sections[sectionId]]);
+        this.emit("onRaycast", [morphologyObj._sections[sectionId]]);
 
         // If it's another mesh
-      } else if ('name' in sectionMesh.userData) {
-        this.emit('onRaycast', [sectionMesh.userData.name]);
+      } else if ("name" in sectionMesh.userData) {
+        this.emit("onRaycast", [sectionMesh.userData.name]);
 
         // here we are raycasting something that is not identified
       } else {
-        this.emit('onRaycast', [null]);
+        this.emit("onRaycast", [null]);
       }
     }
   }
@@ -723,11 +731,11 @@ class ThreeContext extends EventManager {
   addMorphology(morphoMesh, options) {
     // generate a random name in case none was provided
     const name = options.name; // set before
-    const focusOn = Tools.getOption(options, 'focusOn', true);
+    const focusOn = Tools.getOption(options, "focusOn", true);
     const focusDistance = Tools.getOption(
       options,
-      'distance',
-      DEFAULT_FOCUS_DISTANCE,
+      "distance",
+      DEFAULT_FOCUS_DISTANCE
     );
 
     this._morphologyMeshCollection[name] = morphoMesh;
@@ -736,7 +744,7 @@ class ThreeContext extends EventManager {
     if (focusOn) this.focusOnMorphology(name, focusDistance);
 
     // call a callback if declared, with the name of the morphology in arg
-    const onDone = Tools.getOption(options, 'onDone');
+    const onDone = Tools.getOption(options, "onDone");
     if (onDone) {
       onDone(name);
     }
@@ -756,7 +764,7 @@ class ThreeContext extends EventManager {
       if (allNames.length) {
         morphoName = allNames[0];
       } else {
-        return
+        return;
       }
     }
 
@@ -766,7 +774,7 @@ class ThreeContext extends EventManager {
     this._camera.position.set(
       targetPoint.x,
       targetPoint.y,
-      targetPoint.z - distance,
+      targetPoint.z - distance
     );
     this._camera.lookAt(targetPoint);
     // this._controls.target.copy(targetPoint)
@@ -784,7 +792,7 @@ class ThreeContext extends EventManager {
     this._camera.position.set(
       boundingSphere.center.x - boundingSphere.radius * 3,
       boundingSphere.center.y,
-      boundingSphere.center.z,
+      boundingSphere.center.z
     );
     this._camera.lookAt(boundingSphere.center);
     // this._controls.target.copy(boundingSphere.center)
@@ -795,11 +803,11 @@ class ThreeContext extends EventManager {
    * Get the png image data as base64, in order to later, export as a file
    */
   getSnapshotData() {
-    const strMime = 'image/png';
+    const strMime = "image/png";
     // let strDownloadMime = "image/octet-stream"
     // const imgData = this._renderer.domElement.toDataURL(strMime)
     // imgData.replace(strMime, strDownloadMime)
-    return this._canvas.toBuffer(strMime)
+    return this._canvas.toBuffer(strMime);
   }
 
   /**
@@ -2596,8 +2604,8 @@ class MorphologyPolycylinder extends MorphologyShapeBase {
  * and is the only object the user should be dealing with.
  */
 class MorphoViewer {
-  constructor() {
-    this._threeContext = new ThreeContext();
+  constructor(canvas) {
+    this._threeContext = new ThreeContext(canvas);
   }
 
   /**

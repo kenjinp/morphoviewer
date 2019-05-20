@@ -1,4 +1,4 @@
-import { terser } from 'rollup-plugin-terser';
+// import { terser } from 'rollup-plugin-terser';
 import resolve from 'rollup-plugin-node-resolve';
 import builtins from 'rollup-plugin-node-builtins';
 import globals from 'rollup-plugin-node-globals';
@@ -52,7 +52,7 @@ export default [
     external: [...Object.keys(pkg.dependencies || {})],
     plugins: [
       resolve(),
-      commonjs({ include: 'node_modules/**' }),
+      // commonjs({ include: "node_modules/**" }),
       globals(),
       builtins(),
     ],
@@ -70,7 +70,7 @@ export default [
 
     plugins: [
       resolve(),
-      commonjs({ include: 'node_modules/**' }),
+      // commonjs({ include: "node_modules/**" }),
       globals(),
       builtins(),
     ],

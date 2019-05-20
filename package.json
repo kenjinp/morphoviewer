@@ -1,6 +1,6 @@
 {
   "name": "morphoviewer-node",
-  "version": "0.1.15",
+  "version": "0.1.18",
   "description": "A 3D neuron morphology viewer for the server",
   "repository": "https://github.com/kenjinp/morphoviewer",
   "moduleName": "morphoviewer",
@@ -33,7 +33,6 @@
     "serve": "^10.0.2"
   },
   "dependencies": {
-    "canvas": "^2.5.0",
     "codecutils": "^0.1.3",
     "morphologycorejs": "^0.1.10",
     "pako": "^1.0.6",

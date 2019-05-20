@@ -9,8 +9,8 @@ import Tools from './Tools';
  * and is the only object the user should be dealing with.
  */
 class MorphoViewer {
-  constructor() {
-    this._threeContext = new ThreeContext()
+  constructor(canvas) {
+    this._threeContext = new ThreeContext(canvas)
   }
 
   /**
